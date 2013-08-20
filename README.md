@@ -12,16 +12,16 @@ Quick Start
 ----------
 Import JQuery and the Plugin:
 ``` html
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
-    <script type="text/javascript" src="jquery.balanced-gallery.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+<script type="text/javascript" src="jquery.balanced-gallery.js"></script>
 ```
 
 Call the plugin on the element containing the gallery's images:
 ``` javascript
-    // wait for the page to load
-    $(window).load(function() {
-        $('#myGallery').BalancedGallery({ //options });
-     });
+// wait for the page to load
+$(window).load(function() {
+   $('#myGallery').BalancedGallery({ /* options */ });
+});
 ```
 
 Options
