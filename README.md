@@ -5,15 +5,15 @@ Photos are scaled based on the size of the 'container' element by default, makin
 
 Demos
 -------
-(Horizontal Gallery Demo)[]
-(Vertical Gallery Demo)[]
+(Horizontal Gallery Demo)[http://www.ryanepp.com/demos/balanced_gallery_horizontal]
+(Vertical Gallery Demo)[http://www.ryanepp.com/demos/balanced_gallery_vertical]
 
 Quick Start
 ----------
 Import JQuery and the Plugin:
 ``` html
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
-<script type="text/javascript" src="jquery.balanced-gallery.js"></script>
+<script type="text/javascript" src="jquery.balanced-gallery.min.js"></script>
 ```
 
 Call the plugin on the element containing the gallery's images:
