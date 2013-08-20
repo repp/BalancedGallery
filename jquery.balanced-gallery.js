@@ -3,7 +3,6 @@
     var pluginName = 'BalancedGallery',
         balancedGallery,
         defaults = {
-            autoResize: true,
             background: null,
             idealHeight: null,
             idealWidth: null,
@@ -33,10 +32,6 @@
 
         this.init();
         this.createGallery();
-
-        if(this.options.autoResize) {
-            this.setupAutoResize();
-        }
     }
 
     BalancedGallery.prototype.init = function () {
@@ -387,34 +382,6 @@
             }
         }
 
-    };
-
-    BalancedGallery.prototype.setupAutoResize = function() {
-      $(window).resize(function() {
-          clearTimeout(resizeTimeout);
-          resizeTimeout = setTimeout(function() {
-              if(balancedGallery.options.orientation == 'vertical') {
-                  balancedGallery.resetColumns();
-                  balancedGallery.init();
-                  balancedGallery.createVerticalGallery();
-              } else {
-                  balancedGallery.options.viewportWidth = $(balancedGallery.element).width() + balancedGallery.options.padding;
-                  balancedGallery.createHorizontalGallery();
-              }
-          }, 500);
-      });
-    };
-
-    BalancedGallery.prototype.resetColumns = function() {
-        $(this.element).html(''); //clear element
-        this.elementChildren.each(function() {
-            $(this).css({width:'auto', height:'auto', padding:0, margin:0});
-            $(balancedGallery.element).append(this);
-        });
-        balancedGallery.options.viewportHeight = null;
-        balancedGallery.options.viewportWidth = null;
-        balancedGallery.options.idealWidth = null;
-        balancedGallery.options.idealHeight = null;
     };
 
     BalancedGallery.prototype.aspectRatio = function ($image) {
