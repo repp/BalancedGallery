@@ -55,7 +55,7 @@
             $(this.element).css({background: this.options.background});
         }
 
-        this.elementChildren.css({display: 'inline-block'});
+        this.elementChildren.css({display: 'inline-block', padding: 0, margin: 0});
         var padding = this.options.padding + 'px';
         $(this.element).css({fontSize: 0, paddingTop: padding, paddingLeft: padding});
     };

@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>TEST</title>
-    <script type="text/javascript" src="jquery-1.10.2.min.js"></script>
+    <title>Balanced Gallery Demo</title>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
     <script type="text/javascript" src="jquery.balanced-gallery.js"></script>
     <style type="text/css">
         html, body {
+            font-family: helvetica, arial, sans-serif;
             height: 100%;
             padding: 0;
             margin: 0;
@@ -13,31 +14,28 @@
     </style>
 
     <script type="text/javascript">
-
-        //Generate Cats:
         $(window).load(function () {
-           //$('body').BalancedGallery();
-           $('body').BalancedGallery();
+           $('body').BalancedGallery({orientation: 'horizontal', padding: 50});
         });
-
     </script>
 
 </head>
 <body>
 
-    <img src="http://placekitten.com/335/283" />
+    <img src="http://placekitten.com/335/283" style="padding: 10px; margin: 5px" />
     <img src="http://placekitten.com/325/596" />
     <img src="http://placekitten.com/580/365" />
     <img src="http://placekitten.com/282/581" />
     <img src="http://placekitten.com/503/319" />
     <img src="http://placekitten.com/549/577" />
-    <div style="width: 500px; height: 200px; background-color: #0F0;"></div>
     <img src="http://placekitten.com/355/493" />
+    <img src="http://placekitten.com/500/150" />
     <img src="http://placekitten.com/360/529" />
     <img src="http://placekitten.com/589/361" />
     <img src="http://placekitten.com/452/462" />
     <img src="http://placekitten.com/550/304" />
     <img src="http://placekitten.com/352/204" />
+    <img src="http://placekitten.com/400/220" />
 
 </body>
 </html>
