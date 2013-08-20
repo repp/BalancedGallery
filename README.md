@@ -6,6 +6,7 @@ Photos are scaled based on the size of the 'container' element by default, makin
 Demos
 -------
 [Horizontal Gallery Demo](http://www.ryanepp.com/demos/balanced_gallery_horizontal)
+
 [Vertical Gallery Demo](http://www.ryanepp.com/demos/balanced_gallery_vertical)
 
 Quick Start
