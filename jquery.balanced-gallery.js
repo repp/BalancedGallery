@@ -3,6 +3,7 @@
     var pluginName = 'BalancedGallery',
         balancedGallery,
         defaults = {
+            autoResize: true,
             background: null,
             idealHeight: null,
             idealWidth: null,
@@ -30,9 +31,53 @@
         this.elementChildren = $(element).children('*');
         this.options = $.extend( {}, defaults, options); // merge arg options and defaults
 
+        if(this.options.autoResize) {
+            this.unadulteratedHtml = $(this.element).html();
+            this.unadulteratedCSS = this.getUnadulteratedCss();
+            this.unadulteratedOptions = $.extend({}, this.options);
+            this.setupAutoResize();
+        }
+
         this.init();
         this.createGallery();
     }
+
+    BalancedGallery.prototype.getUnadulteratedCss = function() {
+        var $element = $(this.element);
+        //only the properties modified by the plugin
+        return {
+          width:  $element[0].style.width,
+          height: $element[0].style.height,
+          background: $element.css('background'),
+          paddingLeft: $element.css('padding-left'),
+          paddingTop: $element.css('padding-top'),
+          overflow: $element.css('overflow'),
+          fontSize: $element.css('font-size')
+        };
+    };
+
+    BalancedGallery.prototype.setupAutoResize = function() {
+        $(window).resize(function() {
+            clearTimeout(resizeTimeout);
+
+            resizeTimeout = setTimeout(function() {
+                balancedGallery.recreate();
+            }, 500);
+        });
+    };
+
+    BalancedGallery.prototype.recreate = function () {
+        this.reset();
+        this.init();
+        this.createGallery();
+    };
+
+    BalancedGallery.prototype.reset = function() {
+        $(this.element).html(this.unadulteratedHtml);
+        $(this.element).css(this.unadulteratedCSS);
+        this.options = $.extend({}, this.unadulteratedOptions);
+        this.elementChildren = $(this.element).children('*');
+    };
 
     BalancedGallery.prototype.init = function () {
         if(this.options.viewportWidth == null) {

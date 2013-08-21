@@ -29,6 +29,7 @@ Options
 -------
 ``` javascript
 var defaults = {
+            autoResize: true,                   // re-partition and resize the images when the window size changes
             background: null,                   // the css properties of the gallery's containing element
             idealHeight: null,                  // ideal row height, only used for horizontal galleries, defaults to half the containing element's height
             idealWidth: null,                   // ideal column width, only used for vertical galleries, defaults to 1/4 of the containing element's width
