@@ -14,6 +14,7 @@
             viewportHeight: null,
             viewportWidth: null
         },
+        ALL_CHILDREN_LOADED = 'ALL_CHILDREN_LOADED',
         resizeTimeout = null;
 
     //this wrapper prevents multiple instantiations of the plugin:
@@ -67,16 +68,29 @@
     };
 
     BalancedGallery.prototype.recreate = function () {
+        $(this.element).on(ALL_CHILDREN_LOADED, function() {
+            balancedGallery.init();
+            balancedGallery.createGallery();
+        });
         this.reset();
-        this.init();
-        this.createGallery();
     };
 
     BalancedGallery.prototype.reset = function() {
+        var childCount = this.elementChildren.length;
+
         $(this.element).html(this.unadulteratedHtml);
         $(this.element).css(this.unadulteratedCSS);
         this.options = $.extend({}, this.unadulteratedOptions);
         this.elementChildren = $(this.element).children('*');
+
+        var loadedChildren = 0;
+        this.elementChildren.each(function() {
+            $(this).load(function() {
+                if(++loadedChildren == childCount) {
+                    $(balancedGallery.element).trigger(ALL_CHILDREN_LOADED);
+                }
+            });
+        });
     };
 
     BalancedGallery.prototype.init = function () {
