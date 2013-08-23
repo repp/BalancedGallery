@@ -49,7 +49,8 @@ Tested and working in:
 * Safari
 * FireFox
 * IE 9+
-(It has the potential to work in earlier versions of IE, there are just a few nasty bugs that need sorted out first)
+* Mobile Safari
+* Mobile Chrome
 
 
 Contributing
