@@ -37,8 +37,8 @@ var defaults = {
             orientation: 'horizontal',          // 'horizontal' galleries are made of rows and scroll vertically; 'vertical' galleries are made of columns and scroll horizontally
             padding: 5,                         // pixels between images
             shuffleUnorderedPartitions: true,   // unordered galleries tend to clump larger images at the begining, this solves that issue at a slight performance cost
-            viewportHeight: null,               // assumed height of the gallery, defaults to the containing element's height
-            viewportWidth: null                 // assumed width of the gallery, defaults to the containing element's width
+            viewportHeight: null,               // the assumed height of the gallery, defaults to the containing element's height
+            viewportWidth: null                 // the assumed width of the gallery, defaults to the containing element's width
         };
 ```
 

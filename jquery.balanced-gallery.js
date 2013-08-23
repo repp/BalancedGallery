@@ -410,14 +410,13 @@
             $('.balanced-gallery-column').each(function() { sum += ($(this).width()); });
             return sum;
         }());
-        $(balancedGallery.element).parent().css({overflowX: 'scroll'});
 
         //If there's horizontal overflow the scrollbar causes vertical scrolling
         if(balancedGallery.options.viewportHeight != balancedGallery.element.clientHeight) {
             balancedGallery.options.viewportHeight = balancedGallery.element.clientHeight - balancedGallery.options.padding;
             $(balancedGallery.element).height(balancedGallery.options.viewportHeight - balancedGallery.options.padding);
             resizeVerticalElements(partitions);
-        }
+       }
     }
 
     function orientElementsVertically(partitions) {
