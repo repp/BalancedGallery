@@ -1,4 +1,5 @@
 ;(function ( $, window, document, undefined ) {
+    "use strict";
 
     var pluginName = 'BalancedGallery',
         balancedGallery,
@@ -15,7 +16,8 @@
             viewportWidth: null
         },
         ALL_CHILDREN_LOADED = 'ALL_CHILDREN_LOADED',
-        resizeTimeout = null;
+        resizeTimeout = null,
+        RADIX = 10;
 
     //this wrapper prevents multiple instantiations of the plugin:
     $.fn[pluginName] = function ( options ) {
@@ -47,13 +49,13 @@
         var $element = $(balancedGallery.element);
         //only the properties modified by the plugin
         return {
-          width:  $element[0].style.width,
-          height: $element[0].style.height,
-          background: $element.css('background'),
-          paddingLeft: $element.css('padding-left'),
-          paddingTop: $element.css('padding-top'),
-          overflow: $element.css('overflow'),
-          fontSize: $element.css('font-size')
+            width:  $element[0].style.width,
+            height: $element[0].style.height,
+            background: $element.css('background'),
+            paddingLeft: $element.css('padding-left'),
+            paddingTop: $element.css('padding-top'),
+            overflow: $element.css('overflow'),
+            fontSize: $element.css('font-size')
         };
     }
 
@@ -86,7 +88,7 @@
         var loadedChildren = 0;
         this.elementChildren.each(function() {
             $(this).load(function() {
-                if(++loadedChildren == childCount) {
+                if(++loadedChildren === childCount) {
                     $(balancedGallery.element).trigger(ALL_CHILDREN_LOADED);
                 }
             });
@@ -94,23 +96,23 @@
     };
 
     BalancedGallery.prototype.init = function () {
-        if(this.options.viewportWidth == null) {
+        if(this.options.viewportWidth === null) {
             this.options.viewportWidth = $(this.element).width();
         }
 
-        if(this.options.viewportHeight == null) {
+        if(this.options.viewportHeight === null) {
             this.options.viewportHeight = $(this.element).height();
         }
 
-        if(this.options.idealWidth == null) {
+        if(this.options.idealWidth === null) {
             this.options.idealWidth = $(this.element).width() / 4;
         }
 
-        if(this.options.idealHeight == null) {
+        if(this.options.idealHeight === null) {
             this.options.idealHeight = $(this.element).height() / 2;
         }
 
-        if(this.options.background != null) {
+        if(this.options.background !== null) {
             $(this.element).css({background: this.options.background});
         }
 
@@ -121,9 +123,9 @@
 
     BalancedGallery.prototype.createGallery = function() {
         var orientation = (this.options.orientation).toLowerCase();
-        if(orientation == 'horizontal') {
+        if(orientation === 'horizontal') {
             createHorizontalGallery();
-        } else if(orientation == 'vertical') {
+        } else if(orientation === 'vertical') {
             createVerticalGallery();
         } else {
             throw("BalancedGallery: Invalid Orientation.");
@@ -133,7 +135,7 @@
     function createHorizontalGallery() {
         var rows, weights, partitions;
         rows = getRows();
-        if(rows == 0) {
+        if(rows === 0) {
             balancedGallery.fallbackToStandardSize();
         } else {
             weights = getWidthWeights();
@@ -145,7 +147,7 @@
     function createVerticalGallery() {
         var cols, weights, partitions;
         cols = getColumns();
-        if(cols == 0) {
+        if(cols === 0) {
             balancedGallery.fallbackToStandardSize();
         } else {
             weights = getHeightWeights();
@@ -197,14 +199,14 @@
 
     function getWidthWeights() {
         return balancedGallery.elementChildren.map(function () {
-            var weight = parseInt( aspectRatio($(this)) * 100 );
+            var weight = parseInt( aspectRatio($(this)) * 100, RADIX );
             return {element: this, weight: weight };
         });
     }
 
     function getHeightWeights() {
         return balancedGallery.elementChildren.map(function () {
-            var weight = parseInt( (1/aspectRatio($(this))) * 100 );
+            var weight = parseInt( (1/aspectRatio($(this))) * 100, RADIX );
             return {element: this, weight: weight };
         });
     }
@@ -239,25 +241,21 @@
         var partitions = [];
 
         while(sections >= 0) {
-            partitions = [function() {
-                var results = [];
-                for(var f = (solution[elementCount-1][sections]+1); f < elementCount+1; f++){
-                    results.push(weights[f]);
-                }
-                return results;
-            }()].concat(partitions);
+            var results = [];
+            for(var f = (solution[elementCount-1][sections]+1); f < elementCount+1; f++){
+                results.push(weights[f]);
+            }
+            partitions = [results].concat(partitions);
 
             elementCount = solution[elementCount-1][sections];
             sections -= 1;
         }
 
-        return [function() {
-            var results = [];
-            for(var r = 0; r < elementCount+1; r++) {
-                results.push(weights[r]);
-            }
-            return results;
-        }()].concat(partitions);
+        var results2 = [];
+        for(var r = 0; r < elementCount+1; r++) {
+            results2.push(weights[r]);
+        }
+        return [results2].concat(partitions);
     }
 
     // Used as part of the ordered partition function:
@@ -266,43 +264,37 @@
 
         var table = [];
         for (var i = 0; i < elementCount; i++) {
-            table.push((function() {
-                var res = [];
-                for (var j = 0; j < sections; j++) {
-                    res.push(0);
-                }
-                return res;
-            })());
+            var res = [];
+            for (var j = 0; j < sections; j++) {
+                res.push(0);
+            }
+            table.push(res);
         }
 
         var solution = [];
         for (var k = 0; k < elementCount-1; k++) {
-            solution.push((function() {
-                var res;
-                res = [];
-                for (var l = 0; l < sections-1; l++) {
-                    res.push(0);
-                }
-                return res;
-            })());
+            var res2 = [];
+            for (var l = 0; l < sections-1; l++) {
+                res2.push(0);
+            }
+            solution.push(res2);
         }
 
         for(var m = 0; m < elementCount; m++) {
-            table[m][0] = weights[m].weight + (m != 0 ? table[m-1][0] : 0);
+            table[m][0] = weights[m].weight + (m !== 0 ? table[m-1][0] : 0);
         }
         for(var n = 0; n < sections; n++) {
             table[0][n] = weights[0].weight;
         }
 
+        var subArraySort = function(a, b){ return a[0]-b[0]; };
         for(var p = 1; p < elementCount; p++) {
             for(var q = 1; q < sections; q++) {
-                var arr = (function() {
-                    var results = [];
-                    for (var r = 0; r < p; r++) {
-                        results.push([ Math.max( table[r][q - 1], table[p][0]-table[r][0] ), r ]);
-                    }
-                    return results.sort(function(a, b){ return a[0]-b[0]; })[0];
-                })();
+                var results = [];
+                for (var r = 0; r < p; r++) {
+                    results.push([ Math.max( table[r][q - 1], table[p][0]-table[r][0] ), r ]);
+                }
+                var arr = results.sort(subArraySort)[0];
                 table[p][q] = arr[0];
                 solution[p-1][q-1] = arr[1];
             }
@@ -311,12 +303,11 @@
         return solution;
     }
 
-
     function getUnorderedPartition(weights, sections) {
         var sortedWeights = weights.sort(function(a,b){ return b.weight - a.weight; });
 
         var partitions = new Array(sections);
-        for (var i=0; i <sections; i++) partitions[i] = [];
+        for (var i=0; i <sections; i++) { partitions[i] = []; }
 
 
         for(var j = 0; j < sortedWeights.length; j++) {
@@ -371,15 +362,15 @@
             for(var k = 0; k < partitions[i].length; k++) {
                 var $image = $(partitions[i][k].element);
                 var rawImgHeight = (balancedGallery.options.viewportWidth - padding) / summedRowRatios  ;
-                var imgHeight = parseInt( rawImgHeight );
-                var imgWidth = parseInt( imgHeight * aspectRatio($image) ) - padding;
+                var imgHeight = parseInt( rawImgHeight, RADIX );
+                var imgWidth = parseInt( imgHeight * aspectRatio($image), RADIX ) - padding;
                 $image.width(imgWidth);
                 $image.height(imgHeight);
                 $image.css({margin: 0, marginRight:padding+'px', marginBottom:padding+'px'});
             }
         }
 
-        if(balancedGallery.element != document.body) {
+        if(balancedGallery.element !== document.body) {
             $(balancedGallery.element).css({overflow:'scroll'});
         }
 
@@ -395,11 +386,11 @@
             for(var k = 0; k < partitions[i].length; k++) {
                 var $image = $(partitions[i][k].element);
                 var rawImgWidth = (balancedGallery.options.viewportHeight - padding) / summedColRatios  ;
-                var imgWidth = parseInt( rawImgWidth );
-                var imgHeight = parseInt( imgWidth * (1/aspectRatio($image)) ) - padding;
+                var imgWidth = parseInt( rawImgWidth, RADIX );
+                var imgHeight = parseInt( imgWidth * (1/aspectRatio($image)), RADIX ) - padding;
                 $image.width(imgWidth);
                 $image.height(imgHeight);
-                $image.css({margin: 0, marginRight:padding+'px', marginBottom:padding+'px'})
+                $image.css({margin: 0, marginRight:padding+'px', marginBottom:padding+'px'});
             }
         }
 
@@ -411,29 +402,30 @@
             return sum;
         }());
 
-        if(balancedGallery.element != document.body) {
+        if(balancedGallery.element !== document.body) {
             $(balancedGallery.element).css({overflowY:'hidden'});
         }
 
         //If there's horizontal overflow the scrollbar causes vertical scrolling
-        if(balancedGallery.options.viewportHeight != balancedGallery.element.clientHeight) {
+        if(balancedGallery.options.viewportHeight !== balancedGallery.element.clientHeight) {
             balancedGallery.options.viewportHeight = balancedGallery.element.clientHeight - balancedGallery.options.padding;
             $(balancedGallery.element).height(balancedGallery.options.viewportHeight - balancedGallery.options.padding);
-            if(balancedGallery.element == document.body) {
+            if(balancedGallery.element === document.body) {
                 resizeVerticalElements(partitions);
             }
-       }
+        }
     }
 
     function orientElementsVertically(partitions) {
-        var $element = $(balancedGallery.element);
+        var $element = $(balancedGallery.element),
+            $container;
         $element.html(''); //clear the images
         $element.css({overflow: 'scroll'});
-        if(balancedGallery.element != document.body) {
-            var $container = $('<div id="balanced-gallery-col-container"></div>');
+        if(balancedGallery.element !== document.body) {
+            $container = $('<div id="balanced-gallery-col-container"></div>');
             $element.append($container[0]);
         } else {
-            var $container = $(balancedGallery.element);
+            $container = $(balancedGallery.element);
         }
         balancedGallery.container = $container[0];
 
@@ -457,14 +449,14 @@
     }
 
     function shuffleArray(array) {
-            var counter = array.length, temp, index;
-            while (counter--) {
-                index = (Math.random() * counter) | 0;
-                temp = array[counter];
-                array[counter] = array[index];
-                array[index] = temp;
-            }
-            return array;
+        var counter = array.length, temp, index;
+        while (counter--) {
+            index = (Math.random() * counter) | 0; //not a typo
+            temp = array[counter];
+            array[counter] = array[index];
+            array[index] = temp;
+        }
+        return array;
     }
 
 })( jQuery, window, document );
