@@ -42,6 +42,16 @@ var defaults = {
         };
 ```
 
+Browser Compatibility
+------------
+Tested and working in:
+* Chrome
+* Safari
+* FireFox
+* IE 9+
+(It has the potential to work in earlier versions of IE, there are just a few nasty bugs that need sorted out first)
+
+
 Contributing
 ------------
 If you'd like to contribute a feature or bugfix, that's awesome. Go for it. As of right now I don't have a specific set of guidelines for contributions but try to follow the plugin's current coding style.
