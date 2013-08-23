@@ -34,17 +34,17 @@
 
         if(this.options.autoResize) {
             this.unadulteratedHtml = $(this.element).html();
-            this.unadulteratedCSS = this.getUnadulteratedCss();
+            this.unadulteratedCSS = getUnadulteratedCss();
             this.unadulteratedOptions = $.extend({}, this.options);
-            this.setupAutoResize();
+            setupAutoResize();
         }
 
         this.init();
         this.createGallery();
     }
 
-    BalancedGallery.prototype.getUnadulteratedCss = function() {
-        var $element = $(this.element);
+    function getUnadulteratedCss() {
+        var $element = $(balancedGallery.element);
         //only the properties modified by the plugin
         return {
           width:  $element[0].style.width,
@@ -55,9 +55,9 @@
           overflow: $element.css('overflow'),
           fontSize: $element.css('font-size')
         };
-    };
+    }
 
-    BalancedGallery.prototype.setupAutoResize = function() {
+    function setupAutoResize() {
         $(window).resize(function() {
             clearTimeout(resizeTimeout);
 
@@ -65,7 +65,7 @@
                 balancedGallery.recreate();
             }, 500);
         });
-    };
+    }
 
     BalancedGallery.prototype.recreate = function () {
         $(this.element).on(ALL_CHILDREN_LOADED, function() {
@@ -122,69 +122,72 @@
     BalancedGallery.prototype.createGallery = function() {
         var orientation = (this.options.orientation).toLowerCase();
         if(orientation == 'horizontal') {
-            this.createHorizontalGallery();
+            createHorizontalGallery();
         } else if(orientation == 'vertical') {
-            this.createVerticalGallery();
+            createVerticalGallery();
         } else {
             throw("BalancedGallery: Invalid Orientation.");
         }
     };
 
-    BalancedGallery.prototype.createHorizontalGallery = function() {
+    function createHorizontalGallery() {
         var rows, weights, partitions;
-        rows = this.getRows();
+        rows = getRows();
         if(rows == 0) {
-            this.fallbackToStandardSize();
+            balancedGallery.fallbackToStandardSize();
         } else {
-            weights = this.getWidthWeights();
-            partitions = this.getPartitions(weights, rows);
-            this.resizeHorizontalElements(partitions);
+            weights = getWidthWeights();
+            partitions = getPartitions(weights, rows);
+            resizeHorizontalElements(partitions);
         }
-    };
+    }
 
-    BalancedGallery.prototype.createVerticalGallery = function() {
+    function createVerticalGallery() {
         var cols, weights, partitions;
-        cols = this.getColumns();
-        weights = this.getHeightWeights();
-        partitions = this.getPartitions(weights, cols);
-        this.orientElementsVertically(partitions);
-        this.resizeVerticalElements(partitions);
-    };
+        cols = getColumns();
+        if(cols == 0) {
+            balancedGallery.fallbackToStandardSize();
+        } else {
+            weights = getHeightWeights();
+            partitions = getPartitions(weights, cols);
+            orientElementsVertically(partitions);
+            resizeVerticalElements(partitions);
+        }
+    }
 
-    BalancedGallery.prototype.getRows = function () {
-        return Math.round( this.collectiveIdealWidth() / (this.options.viewportWidth-this.options.padding) );
-    };
+    function getRows () {
+        return Math.round( collectiveIdealWidth() / (balancedGallery.options.viewportWidth - balancedGallery.options.padding) );
+    }
 
-    BalancedGallery.prototype.getColumns = function () {
-        return Math.round( this.collectiveIdealHeight() / (this.options.viewportHeight-this.options.padding) );
-    };
+    function getColumns() {
+        return Math.round( collectiveIdealHeight() / (balancedGallery.options.viewportHeight - balancedGallery.options.padding) );
+    }
 
-    BalancedGallery.prototype.collectiveIdealWidth = function() {
+    function collectiveIdealWidth() {
         var sum = 0;
-        this.elementChildren.each(function () {
-            sum += balancedGallery.idealWidth($(this));
+        balancedGallery.elementChildren.each(function () {
+            sum += idealWidth($(this));
         });
         return sum;
-    };
+    }
 
-    BalancedGallery.prototype.collectiveIdealHeight = function() {
+    function collectiveIdealHeight() {
         var sum = 0;
-        this.elementChildren.each(function () {
-            sum += balancedGallery.idealHeight($(this));
+        balancedGallery.elementChildren.each(function () {
+            sum += idealHeight($(this));
         });
         return sum;
-    };
+    }
 
-    BalancedGallery.prototype.idealWidth = function($image) {
-        return this.aspectRatio($image) * (this.options.idealHeight + this.options.padding);
-    };
+    function idealWidth($image) {
+        return aspectRatio($image) * (balancedGallery.options.idealHeight + balancedGallery.options.padding);
+    }
 
-    BalancedGallery.prototype.idealHeight = function($image) {
-        return (1/this.aspectRatio($image)) * (this.options.idealWidth + this.options.padding);
-    };
+    function idealHeight($image) {
+        return (1/aspectRatio($image)) * (balancedGallery.options.idealWidth + balancedGallery.options.padding);
+    }
 
     BalancedGallery.prototype.fallbackToStandardSize = function() {
-        //todo fix
         var idealHeight = this.options.idealHeight;
         this.elementChildren.each(function () {
             $(this).height( idealHeight );
@@ -192,34 +195,34 @@
         });
     };
 
-    BalancedGallery.prototype.getWidthWeights = function () {
-        return this.elementChildren.map(function () {
-            var weight = parseInt( balancedGallery.aspectRatio($(this)) * 100 );
+    function getWidthWeights() {
+        return balancedGallery.elementChildren.map(function () {
+            var weight = parseInt( aspectRatio($(this)) * 100 );
             return {element: this, weight: weight };
         });
-    };
+    }
 
-    BalancedGallery.prototype.getHeightWeights = function () {
-        return this.elementChildren.map(function () {
-            var weight = parseInt( (1/balancedGallery.aspectRatio($(this))) * 100 );
+    function getHeightWeights() {
+        return balancedGallery.elementChildren.map(function () {
+            var weight = parseInt( (1/aspectRatio($(this))) * 100 );
             return {element: this, weight: weight };
         });
-    };
+    }
 
-    BalancedGallery.prototype.getPartitions = function (weights, sections) {
-        if(this.options.maintainOrder) {
-            return this.getOrderedPartition(weights, sections);
+    function getPartitions(weights, sections) {
+        if(balancedGallery.options.maintainOrder) {
+            return getOrderedPartition(weights, sections);
         } else {
-            var partitions = this.getUnorderedPartition(weights, sections);
-            if(this.options.shuffleUnorderedPartitions) {
-                partitions = this.shufflePartitions(partitions);
+            var partitions = getUnorderedPartition(weights, sections);
+            if(balancedGallery.options.shuffleUnorderedPartitions) {
+                partitions = shufflePartitions(partitions);
             }
-            this.reorderElements(partitions);
+            reorderElements(partitions);
             return partitions;
         }
-    };
+    }
 
-    BalancedGallery.prototype.getOrderedPartition = function (weights, sections) {
+    function getOrderedPartition(weights, sections) {
         var elementCount = weights.length;
 
         if(sections <= 0) {
@@ -230,7 +233,7 @@
             return weights.map(function(key, value) { return [([value])]; });
         }
 
-        var solution  = this.createSolutionTable(weights, sections);
+        var solution  = createSolutionTable(weights, sections);
         elementCount -= 1;
         sections -= 2;
         var partitions = [];
@@ -255,10 +258,10 @@
             }
             return results;
         }()].concat(partitions);
-    };
+    }
 
     // Used as part of the ordered partition function:
-    BalancedGallery.prototype.createSolutionTable = function(weights, sections) {
+    function createSolutionTable(weights, sections) {
         var elementCount = weights.length;
 
         var table = [];
@@ -306,10 +309,10 @@
         }
 
         return solution;
-    };
+    }
 
 
-    BalancedGallery.prototype.getUnorderedPartition = function (weights, sections) {
+    function getUnorderedPartition(weights, sections) {
         var sortedWeights = weights.sort(function(a,b){ return b.weight - a.weight; });
 
         var partitions = new Array(sections);
@@ -318,10 +321,10 @@
 
         for(var j = 0; j < sortedWeights.length; j++) {
             var shortestPartition = partitions[0];
-            var shortestPartitionWeight = balancedGallery.getPartitionWeight(shortestPartition);
+            var shortestPartitionWeight = getPartitionWeight(shortestPartition);
 
             for(var k = 0; k < partitions.length; k++) {
-                var pWeight = balancedGallery.getPartitionWeight(partitions[k]);
+                var pWeight = getPartitionWeight(partitions[k]);
                 if(pWeight < shortestPartitionWeight) {
                     shortestPartition = partitions[k];
                     shortestPartitionWeight = pWeight;
@@ -331,69 +334,69 @@
         }
 
         return partitions;
-    };
+    }
 
-    BalancedGallery.prototype.getPartitionWeight = function (partition) {
+    function getPartitionWeight(partition) {
         var weight = 0;
         $.each(partition, function(index, value) {
             weight += value.weight;
         });
         return weight;
-    };
+    }
 
-    BalancedGallery.prototype.shufflePartitions = function(partitions) {
+    function shufflePartitions(partitions) {
         for(var i = 0; i < partitions.length; i++) {
-            partitions[i] = balancedGallery.shuffleArray(partitions[i]);
+            partitions[i] = shuffleArray(partitions[i]);
         }
-        return balancedGallery.shuffleArray(partitions);
-    };
+        return shuffleArray(partitions);
+    }
 
-    BalancedGallery.prototype.reorderElements = function(partitions) {
-        $(this.element).html(''); //remove all elements
+    function reorderElements(partitions) {
+        $(balancedGallery.element).html(''); //remove all elements
         for(var i = 0; i < partitions.length; i++) {
             var subPartition = partitions[i];
             for(var j = 0; j < subPartition.length; j++) {
-                $(this.element).append(subPartition[j].element);
+                $(balancedGallery.element).append(subPartition[j].element);
             }
         }
-    };
+    }
 
-    BalancedGallery.prototype.resizeHorizontalElements = function(partitions) {
+    function resizeHorizontalElements(partitions) {
         var padding = balancedGallery.options.padding;
         for(var i = 0; i < partitions.length; i++) {
             var summedRowRatios = 0;
             for(var j = 0; j < partitions[i].length; j++) {
-                summedRowRatios += balancedGallery.aspectRatio( $(partitions[i][j].element) );
+                summedRowRatios += aspectRatio( $(partitions[i][j].element) );
             }
             for(var k = 0; k < partitions[i].length; k++) {
                 var $image = $(partitions[i][k].element);
-                var rawImgHeight = (this.options.viewportWidth - padding) / summedRowRatios  ;
+                var rawImgHeight = (balancedGallery.options.viewportWidth - padding) / summedRowRatios  ;
                 var imgHeight = parseInt( rawImgHeight );
-                var imgWidth = parseInt( imgHeight * balancedGallery.aspectRatio($image) ) - padding;
+                var imgWidth = parseInt( imgHeight * aspectRatio($image) ) - padding;
                 $image.width(imgWidth);
                 $image.height(imgHeight);
                 $image.css({margin: 0, marginRight:padding+'px', marginBottom:padding+'px'});
             }
         }
 
-        if(this.element != document.body) {
-            $(this.element).css({overflow:'scroll'});
+        if(balancedGallery.element != document.body) {
+            $(balancedGallery.element).css({overflow:'scroll'});
         }
 
-    };
+    }
 
-    BalancedGallery.prototype.resizeVerticalElements = function(partitions) {
+    function resizeVerticalElements(partitions) {
         var padding = balancedGallery.options.padding;
         for(var i = 0; i < partitions.length; i++) {
             var summedColRatios = 0;
             for(var j = 0; j < partitions[i].length; j++) {
-                summedColRatios += 1/balancedGallery.aspectRatio( $(partitions[i][j].element) );
+                summedColRatios += 1/aspectRatio( $(partitions[i][j].element) );
             }
             for(var k = 0; k < partitions[i].length; k++) {
                 var $image = $(partitions[i][k].element);
-                var rawImgWidth = (this.options.viewportHeight - padding) / summedColRatios  ;
+                var rawImgWidth = (balancedGallery.options.viewportHeight - padding) / summedColRatios  ;
                 var imgWidth = parseInt( rawImgWidth );
-                var imgHeight = parseInt( imgWidth * (1/balancedGallery.aspectRatio($image)) ) - padding;
+                var imgHeight = parseInt( imgWidth * (1/aspectRatio($image)) ) - padding;
                 $image.width(imgWidth);
                 $image.height(imgHeight);
                 $image.css({margin: 0, marginRight:padding+'px', marginBottom:padding+'px'})
@@ -402,32 +405,32 @@
 
         //Resize Container for horizontal scrolling
         $('.balanced-gallery-column').css({display:'inline-block', padding: 0, margin: 0});
-        $(this.container).width(function() {
+        $(balancedGallery.container).width(function() {
             var sum = 0;
             $('.balanced-gallery-column').each(function() { sum += ($(this).width()); });
             return sum;
         }());
-        $(this.element).parent().css({overflowX: 'scroll'});
+        $(balancedGallery.element).parent().css({overflowX: 'scroll'});
 
         //If there's horizontal overflow the scrollbar causes vertical scrolling
-        if(this.options.viewportHeight != this.element.clientHeight) {
-            this.options.viewportHeight = this.element.clientHeight - this.options.padding;
-            $(this.element).height(this.options.viewportHeight - this.options.padding);
-            this.resizeVerticalElements(partitions);
+        if(balancedGallery.options.viewportHeight != balancedGallery.element.clientHeight) {
+            balancedGallery.options.viewportHeight = balancedGallery.element.clientHeight - balancedGallery.options.padding;
+            $(balancedGallery.element).height(balancedGallery.options.viewportHeight - balancedGallery.options.padding);
+            resizeVerticalElements(partitions);
         }
-    };
+    }
 
-    BalancedGallery.prototype.orientElementsVertically = function(partitions) {
-        var $element = $(this.element);
+    function orientElementsVertically(partitions) {
+        var $element = $(balancedGallery.element);
         $element.html(''); //clear the images
         $element.css({overflow: 'scroll'});
-        if(this.element != document.body) {
+        if(balancedGallery.element != document.body) {
             var $container = $('<div id="balanced-gallery-col-container"></div>');
             $element.append($container[0]);
         } else {
-            var $container = $(this.element);
+            var $container = $(balancedGallery.element);
         }
-        this.container = $container[0];
+        balancedGallery.container = $container[0];
 
 
         for(var i = 0; i < partitions.length; i++) {
@@ -441,14 +444,14 @@
             }
         }
 
-    };
+    }
 
-    BalancedGallery.prototype.aspectRatio = function ($image) {
-        var padding = this.options.padding;
+    function aspectRatio($image) {
+        var padding = balancedGallery.options.padding;
         return ($image.width()+padding) / ($image.height()+padding);
-    };
+    }
 
-    BalancedGallery.prototype.shuffleArray = function(array) {
+    function shuffleArray(array) {
             var counter = array.length, temp, index;
             while (counter--) {
                 index = (Math.random() * counter) | 0;
@@ -457,6 +460,6 @@
                 array[index] = temp;
             }
             return array;
-    };
+    }
 
 })( jQuery, window, document );
