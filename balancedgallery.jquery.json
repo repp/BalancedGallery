@@ -1,0 +1,19 @@
+{
+"name" : "BalancedGallery",
+"version" : "1.0.0",
+"title" : "Balanced Gallery",
+"author" : {
+    "name": "Ryan Epp",
+    "url": "www.ryanepp.com"
+},
+"licenses": [
+        {
+            "type": "WTFPL",
+            "url": "https://raw.github.com/repp/BalancedGallery/master/LICENSE.txt"
+        }
+    ],
+"dependencies" : {
+    "jquery": ">=1.5"
+},
+"description" : "Balanced Gallery is a jQuery plugin that evenly distributes photos across rows or columns, making the most of the space provided. Photos are scaled based on the size of the 'container' element by default, making Balanced Gallery a great choice for (responsive) websites."
+}
