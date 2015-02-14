@@ -1,7 +1,7 @@
 Balanced Gallery
 =========
 Balanced Gallery is a jQuery plugin that evenly distributes photos across rows or columns, making the most of the space provided.
-Photos are scaled based on the size of the 'container' element by default, making Balanced Gallery a great choice for ~~responsive~~ websites.
+Photos are scaled based on the size of the 'container' element by default, making Balanced Gallery a great choice for responsive websites.
 
 Demos
 -------
