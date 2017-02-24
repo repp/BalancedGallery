@@ -12,12 +12,12 @@
             orientation: 'horizontal',
             padding: 5,
             shuffleUnorderedPartitions: true,
-            viewportHeight: null,
-            viewportWidth: null
+            divisor: 4
         },
-        ALL_CHILDREN_LOADED = 'ALL_CHILDREN_LOADED',
         resizeTimeout = null,
-        RADIX = 10;
+        RADIX = 10,
+        THRESHOLD = 1 - 0.00001,    //-0.00001 due to imprecision of floating values
+        overflow = 0;
 
     //this wrapper prevents multiple instantiations of the plugin:
     $.fn[pluginName] = function ( options ) {
@@ -31,32 +31,21 @@
     function BalancedGallery( element, options ) {
         balancedGallery = this; // for contexts when 'this' doesn't refer to the BalancedGallery class.
         this.element = element;
-        this.elementChildren = $(element).children('*');
+        $(this.element).wrapInner('<div class="balanced-gallery-container"></div>');
+        this.container = $(this.element).children()[0];
+        this.elementChildren = $(this.container).children('*');
         this.options = $.extend( {}, defaults, options); // merge arg options and defaults
+        this.options.orientation = (this.options.orientation).toLowerCase();
 
         if(this.options.autoResize) {
-            this.unadulteratedHtml = $(this.element).html();
-            this.unadulteratedCSS = getUnadulteratedCss();
+            this.unadulteratedCSS = {width: $(this.element)[0].style.width};
             this.unadulteratedOptions = $.extend({}, this.options);
             setupAutoResize();
         }
 
+        this.quickResize = false;
         this.init();
         this.createGallery();
-    }
-
-    function getUnadulteratedCss() {
-        var $element = $(balancedGallery.element);
-        //only the properties modified by the plugin
-        return {
-            width:  $element[0].style.width,
-            height: $element[0].style.height,
-            background: $element.css('background'),
-            paddingLeft: $element.css('padding-left'),
-            paddingTop: $element.css('padding-top'),
-            overflow: $element.css('overflow'),
-            fontSize: $element.css('font-size')
-        };
     }
 
     function setupAutoResize() {
@@ -70,59 +59,45 @@
     }
 
     BalancedGallery.prototype.recreate = function () {
-        $(this.element).on(ALL_CHILDREN_LOADED, function() {
-            balancedGallery.init();
-            balancedGallery.createGallery();
-        });
-        this.reset();
-    };
-
-    BalancedGallery.prototype.reset = function() {
-        var childCount = this.elementChildren.length;
-
-        $(this.element).html(this.unadulteratedHtml);
-        $(this.element).css(this.unadulteratedCSS);
         this.options = $.extend({}, this.unadulteratedOptions);
-        this.elementChildren = $(this.element).children('*');
+        $(this.element).css(this.unadulteratedCSS); //used to reset width so it's calculated from browser
 
-        var loadedChildren = 0;
-        this.elementChildren.each(function() {
-            $(this).load(function() {
-                if(++loadedChildren === childCount) {
-                    $(balancedGallery.element).trigger(ALL_CHILDREN_LOADED);
-                }
-            });
-        });
+        balancedGallery.quickResize = true;
+        balancedGallery.init();
+        balancedGallery.createGallery();
     };
 
     BalancedGallery.prototype.init = function () {
-        if(this.options.viewportWidth === null) {
-            this.options.viewportWidth = $(this.element).width();
+
+        if(balancedGallery.quickResize === false) {
+            this.elementChildren.each(function() {
+                $(this).css({display: 'inline-block', padding: 0, margin: 0});
+            });
+
+            var padding = this.options.padding + 'px';
+            $(this.container).css({fontSize: 0, paddingTop: padding, paddingLeft: padding});
+
+            if(this.options.background !== null) {
+                $(this.container).css({background: this.options.background});
+            }
         }
 
-        if(this.options.viewportHeight === null) {
-            this.options.viewportHeight = $(this.element).height();
-        }
+        this.options.viewportWidth = $(this.element).width() - this.options.padding;
 
         if(this.options.idealWidth === null) {
-            this.options.idealWidth = $(this.element).width() / 4;
+            this.options.idealWidth = this.options.viewportWidth / this.options.divisor;
         }
 
         if(this.options.idealHeight === null) {
-            this.options.idealHeight = $(this.element).height() / 2;
+            this.options.idealHeight = this.options.viewportWidth / this.options.divisor;
         }
 
-        if(this.options.background !== null) {
-            $(this.element).css({background: this.options.background});
-        }
-
-        this.elementChildren.css({display: 'inline-block', padding: 0, margin: 0});
-        var padding = this.options.padding + 'px';
-        $(this.element).css({fontSize: 0, paddingTop: padding, paddingLeft: padding});
+        //setting explicit width prevents image wrapping on resizing
+        $(this.container).width(this.options.viewportWidth);
     };
 
     BalancedGallery.prototype.createGallery = function() {
-        var orientation = (this.options.orientation).toLowerCase();
+        var orientation = this.options.orientation;
         if(orientation === 'horizontal') {
             createHorizontalGallery();
         } else if(orientation === 'vertical') {
@@ -134,10 +109,10 @@
 
     function createHorizontalGallery() {
         var rows, weights, partitions;
-        rows = getRows();
-        if(rows === 0) {
-            balancedGallery.fallbackToStandardSize();
+        if(balancedGallery.quickResize) {
+            quickResizeHorizontal();
         } else {
+            rows = getRows();
             weights = getWidthWeights();
             partitions = getPartitions(weights, rows);
             resizeHorizontalElements(partitions);
@@ -146,10 +121,10 @@
 
     function createVerticalGallery() {
         var cols, weights, partitions;
-        cols = getColumns();
-        if(cols === 0) {
-            balancedGallery.fallbackToStandardSize();
+        if(balancedGallery.quickResize) {
+            quickResizeVertical();
         } else {
+            cols = getColumns();
             weights = getHeightWeights();
             partitions = getPartitions(weights, cols);
             orientElementsVertically(partitions);
@@ -158,11 +133,21 @@
     }
 
     function getRows () {
-        return Math.round( collectiveIdealWidth() / (balancedGallery.options.viewportWidth - balancedGallery.options.padding) );
+        var rows = Math.round(collectiveIdealWidth() / balancedGallery.options.viewportWidth);
+        if(rows > 0 && rows < 1) { // if it's BETWEEN 0 and 1 means there is at least one image
+            rows = 1;
+        }
+        return rows;
     }
 
     function getColumns() {
-        return Math.round( collectiveIdealHeight() / (balancedGallery.options.viewportHeight - balancedGallery.options.padding) );
+        var cols = Math.round(balancedGallery.options.viewportWidth / balancedGallery.options.idealWidth);
+        var elements = balancedGallery.elementChildren.length;
+        if(cols <= elements) {
+            return cols;
+        } else {
+            return elements;
+        }
     }
 
     function collectiveIdealWidth() {
@@ -173,40 +158,20 @@
         return sum;
     }
 
-    function collectiveIdealHeight() {
-        var sum = 0;
-        balancedGallery.elementChildren.each(function () {
-            sum += idealHeight($(this));
-        });
-        return sum;
-    }
-
     function idealWidth($image) {
-        return aspectRatio($image) * (balancedGallery.options.idealHeight + balancedGallery.options.padding);
+        return (aspectRatio($image) * balancedGallery.options.idealHeight) + balancedGallery.options.padding;
     }
-
-    function idealHeight($image) {
-        return (1/aspectRatio($image)) * (balancedGallery.options.idealWidth + balancedGallery.options.padding);
-    }
-
-    BalancedGallery.prototype.fallbackToStandardSize = function() {
-        var idealHeight = this.options.idealHeight;
-        this.elementChildren.each(function () {
-            $(this).height( idealHeight );
-            $(this).width( balancedGallery.idealWidth($(this)) );
-        });
-    };
 
     function getWidthWeights() {
         return balancedGallery.elementChildren.map(function () {
-            var weight = parseInt( aspectRatio($(this)) * 100, RADIX );
+            var weight = aspectRatio($(this));
             return {element: this, weight: weight };
         });
     }
 
     function getHeightWeights() {
         return balancedGallery.elementChildren.map(function () {
-            var weight = parseInt( (1/aspectRatio($(this))) * 100, RADIX );
+            var weight = 1/aspectRatio($(this));
             return {element: this, weight: weight };
         });
     }
@@ -231,17 +196,14 @@
             return [];
         }
 
-        if(sections >= elementCount) {
-            return weights.map(function(key, value) { return [([value])]; });
-        }
-
         var solution  = createSolutionTable(weights, sections);
         elementCount -= 1;
         sections -= 2;
         var partitions = [];
+        var results = [];
 
         while(sections >= 0) {
-            var results = [];
+            results = [];
             for(var f = (solution[elementCount-1][sections]+1); f < elementCount+1; f++){
                 results.push(weights[f]);
             }
@@ -263,7 +225,7 @@
         var elementCount = weights.length;
 
         var table = [];
-        for (var i = 0; i < elementCount; i++) {
+        for(var i = 0; i < elementCount; i++) {
             var res = [];
             for (var j = 0; j < sections; j++) {
                 res.push(0);
@@ -272,7 +234,7 @@
         }
 
         var solution = [];
-        for (var k = 0; k < elementCount-1; k++) {
+        for(var k = 0; k < elementCount-1; k++) {
             var res2 = [];
             for (var l = 0; l < sections-1; l++) {
                 res2.push(0);
@@ -307,7 +269,7 @@
         var sortedWeights = weights.sort(function(a,b){ return b.weight - a.weight; });
 
         var partitions = new Array(sections);
-        for (var i=0; i <sections; i++) { partitions[i] = []; }
+        for (var i=0; i < sections; i++) { partitions[i] = []; }
 
 
         for(var j = 0; j < sortedWeights.length; j++) {
@@ -343,109 +305,182 @@
     }
 
     function reorderElements(partitions) {
-        $(balancedGallery.element).html(''); //remove all elements
+        $(balancedGallery.container).html(''); //remove all elements
         for(var i = 0; i < partitions.length; i++) {
             var subPartition = partitions[i];
             for(var j = 0; j < subPartition.length; j++) {
-                $(balancedGallery.element).append(subPartition[j].element);
+                $(balancedGallery.container).append(subPartition[j].element);
             }
         }
     }
 
     function resizeHorizontalElements(partitions) {
         var padding = balancedGallery.options.padding;
+        var index = 0;
+        balancedGallery.resizingValue = [];
+
         for(var i = 0; i < partitions.length; i++) {
-            var summedRowRatios = 0;
+            var rowRatio = 0;
             for(var j = 0; j < partitions[i].length; j++) {
-                summedRowRatios += aspectRatio( $(partitions[i][j].element) );
+                rowRatio += partitions[i][j].weight;
             }
+            balancedGallery.resizingValue[i] = {ratio: rowRatio, length: partitions[i].length};
+            overflow = 0;
+            var rowPadding = padding * partitions[i].length;
+            var rawImgHeight = (balancedGallery.options.viewportWidth - rowPadding) / rowRatio;
             for(var k = 0; k < partitions[i].length; k++) {
                 var $image = $(partitions[i][k].element);
-                var rawImgHeight = (balancedGallery.options.viewportWidth - padding) / summedRowRatios  ;
-                var imgHeight = parseInt( rawImgHeight, RADIX );
-                var imgWidth = parseInt( imgHeight * aspectRatio($image), RADIX ) - padding;
+                balancedGallery.elementChildren[index++] = $image;
+                var imgHeight = parseInt(rawImgHeight, RADIX);
+                var imgWidth = rawImgHeight * aspectRatio($image);
+                imgWidth = checkWidthOverflow(imgWidth);
                 $image.width(imgWidth);
                 $image.height(imgHeight);
-                $image.css({margin: 0, marginRight:padding+'px', marginBottom:padding+'px'});
+                $image.css({margin: 0, marginRight: padding+'px', marginBottom: padding+'px'});
             }
         }
 
-        if(balancedGallery.element !== document.body) {
-            $(balancedGallery.element).css({overflow:'scroll'});
+        checkWidth(balancedGallery.options.orientation);
+    }
+
+    function quickResizeHorizontal() {
+        var padding = balancedGallery.options.padding;
+        var index = 0;
+        var imagesPerRow = 0;
+        var rawImgHeight, rowPadding;
+
+        for(var i = 0; i < balancedGallery.elementChildren.length; i++) {
+            if(i == imagesPerRow) {
+                rowPadding = padding * balancedGallery.resizingValue[index].length;
+                rawImgHeight = (balancedGallery.options.viewportWidth - rowPadding) / balancedGallery.resizingValue[index].ratio;
+                imagesPerRow += balancedGallery.resizingValue[index].length;
+                index++;
+                overflow = 0;
+            }
+            var $image = balancedGallery.elementChildren[i];
+            var imgHeight = parseInt(rawImgHeight, RADIX);
+            var imgWidth = rawImgHeight * aspectRatio($image);
+            imgWidth = checkWidthOverflow(imgWidth);
+            $image.width(imgWidth);
+            $image.height(imgHeight);
         }
 
+        checkWidth(balancedGallery.options.orientation);
     }
 
     function resizeVerticalElements(partitions) {
         var padding = balancedGallery.options.padding;
+        var columnRatio = [];
+        var summedColRatios = 0;
+        var index = 0;
+        balancedGallery.resizingValue = [];
+        overflow = 0;
+
         for(var i = 0; i < partitions.length; i++) {
-            var summedColRatios = 0;
+            columnRatio[i] = 0;
             for(var j = 0; j < partitions[i].length; j++) {
-                summedColRatios += 1/aspectRatio( $(partitions[i][j].element) );
+                columnRatio[i] += partitions[i][j].weight;
             }
-            for(var k = 0; k < partitions[i].length; k++) {
-                var $image = $(partitions[i][k].element);
-                var rawImgWidth = (balancedGallery.options.viewportHeight - padding) / summedColRatios  ;
-                var imgWidth = parseInt( rawImgWidth, RADIX );
-                var imgHeight = parseInt( imgWidth * (1/aspectRatio($image)), RADIX ) - padding;
+            // also add ratios from padding bars between each image in a column
+            columnRatio[i] += partitions[i].length * (padding / balancedGallery.options.idealWidth);
+            summedColRatios += columnRatio[i];
+        }
+        balancedGallery.summedColRatios = summedColRatios;
+        var average = summedColRatios / partitions.length;
+        for(var k = 0; k < partitions.length; k++) {
+            var diffToAverage = average - columnRatio[k];
+            var resizingFactor = average + diffToAverage;
+            var columnWidth = (balancedGallery.options.viewportWidth / summedColRatios) * resizingFactor;
+            var rawImgWidth = columnWidth - padding;
+            var imgWidth = checkWidthOverflow(rawImgWidth);
+            var columnHeight = 0;
+            for(var l = 0; l < partitions[k].length; l++) {
+                var $image = $(partitions[k][l].element);
+                balancedGallery.elementChildren[index++] = $image;
+                var imgHeight = Math.round(rawImgWidth * (1/aspectRatio($image)));
+                columnHeight += imgHeight + padding;
                 $image.width(imgWidth);
                 $image.height(imgHeight);
-                $image.css({margin: 0, marginRight:padding+'px', marginBottom:padding+'px'});
+                $image.css({margin: 0, marginRight: padding+'px', marginBottom: padding+'px'});
             }
+            balancedGallery.resizingValue[k] = {ratio: resizingFactor, length: partitions[k].length, columnHeight: columnHeight};
         }
 
-        //Resize Container for horizontal scrolling
-        $('.balanced-gallery-column').css({display:'inline-block', padding: 0, margin: 0});
-        $(balancedGallery.container).width(function() {
-            var sum = 0;
-            $('.balanced-gallery-column').each(function() { sum += ($(this).width()); });
-            return sum;
-        }());
+        checkWidth(balancedGallery.options.orientation);
+    }
 
-        if(balancedGallery.element !== document.body) {
-            $(balancedGallery.element).css({overflowY:'hidden'});
+    function quickResizeVertical() {
+        var padding = balancedGallery.options.padding;
+        var index = -1;
+        var imagesPerCol = 0;
+        overflow = 0;
+        var columnWidth, rawImgWidth, imgWidth;
+
+        for(var i = 0; i < balancedGallery.elementChildren.length; i++) {
+            if(i == imagesPerCol) {
+                index++;
+                balancedGallery.resizingValue[index].columnHeight = 0;
+                columnWidth = (balancedGallery.options.viewportWidth / balancedGallery.summedColRatios) * balancedGallery.resizingValue[index].ratio;
+                rawImgWidth = columnWidth - padding;
+                imgWidth = checkWidthOverflow(rawImgWidth);
+                imagesPerCol += balancedGallery.resizingValue[index].length;
+            }
+            var $image = balancedGallery.elementChildren[i];
+            var imgHeight = parseInt(rawImgWidth * (1/aspectRatio($image)), RADIX);
+            balancedGallery.resizingValue[index].columnHeight += imgHeight + padding;
+            $image.width(imgWidth);
+            $image.height(imgHeight);
         }
 
-        //If there's horizontal overflow the scrollbar causes vertical scrolling
-        if(balancedGallery.options.viewportHeight !== balancedGallery.element.clientHeight) {
-            balancedGallery.options.viewportHeight = balancedGallery.element.clientHeight - balancedGallery.options.padding;
-            $(balancedGallery.element).height(balancedGallery.options.viewportHeight - balancedGallery.options.padding);
-            if(balancedGallery.element === document.body) {
-                resizeVerticalElements(partitions);
+        checkWidth(balancedGallery.options.orientation);
+    }
+
+    //ensures that the rows or all columns are as wide as the container width
+    function checkWidthOverflow(width) {
+        var parsedWidth = parseInt(width, RADIX);
+        overflow += width - parsedWidth;
+        if(overflow >= THRESHOLD) {
+            parsedWidth += 1;
+            overflow -= 1;
+        }
+        return parsedWidth;
+    }
+
+    //if a scrollbar appears or disappears after resizing
+    function checkWidth(orientation) {
+        if((balancedGallery.options.viewportWidth + balancedGallery.options.padding) !== $(balancedGallery.element).width()) {
+            balancedGallery.options.viewportWidth = $(balancedGallery.element).width() - balancedGallery.options.padding;
+            $(balancedGallery.container).width(balancedGallery.options.viewportWidth);
+            if(orientation == 'horizontal') {
+                quickResizeHorizontal();
+            } else if(orientation == 'vertical') {
+                quickResizeVertical();
             }
         }
     }
 
     function orientElementsVertically(partitions) {
-        var $element = $(balancedGallery.element),
-            $container;
-        $element.html(''); //clear the images
-        $element.css({overflow: 'scroll'});
-        if(balancedGallery.element !== document.body) {
-            $container = $('<div id="balanced-gallery-col-container"></div>');
-            $element.append($container[0]);
-        } else {
-            $container = $(balancedGallery.element);
-        }
-        balancedGallery.container = $container[0];
-
+        var $container = $(balancedGallery.container);
+        $container.html(''); //clear the images
 
         for(var i = 0; i < partitions.length; i++) {
             var colName = 'balanced-gallery-col'+i;
-            var column = '<div class="balanced-gallery-column" id="'+colName+'"></div>';
+            var column = '<div class="balanced-gallery-column" id="'+colName+'" style="float: left; padding: 0; margin: 0;"></div>';
             $container.append(column);
+            var $col = $($container.find("div#"+colName));
             for(var j = 0; j < partitions[i].length; j++) {
                 var child = partitions[i][j].element;
-                var $col = $($container.find("div#"+colName));
-                $col.append(child).append('<br />');
+                $col.append(child).append('<br/>');
             }
         }
 
+        //add clearing div
+        var clearingDiv = '<div class="balanced-gallery-clearing" style="clear: both;"></div>';
+        $container.append(clearingDiv);
     }
 
     function aspectRatio($image) {
-        var padding = balancedGallery.options.padding;
-        return ($image.width()+padding) / ($image.height()+padding);
+        return $image[0].naturalWidth / $image[0].naturalHeight;
     }
 
     function shuffleArray(array) {
