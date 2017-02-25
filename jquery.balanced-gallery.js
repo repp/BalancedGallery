@@ -12,7 +12,7 @@
             orientation: 'horizontal',
             padding: 5,
             shuffleUnorderedPartitions: true,
-            divisor: 4
+            widthDivisor: 4
         },
         resizeTimeout = null,
         RADIX = 10,
@@ -84,11 +84,11 @@
         this.options.viewportWidth = $(this.element).width() - this.options.padding;
 
         if(this.options.idealWidth === null) {
-            this.options.idealWidth = this.options.viewportWidth / this.options.divisor;
+            this.options.idealWidth = this.options.viewportWidth / this.options.widthDivisor;
         }
 
         if(this.options.idealHeight === null) {
-            this.options.idealHeight = this.options.viewportWidth / this.options.divisor;
+            this.options.idealHeight = this.options.viewportWidth / this.options.widthDivisor;
         }
 
         //setting explicit width prevents image wrapping on resizing
