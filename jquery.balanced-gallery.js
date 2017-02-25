@@ -68,7 +68,6 @@
     };
 
     BalancedGallery.prototype.init = function () {
-
         if(balancedGallery.quickResize === false) {
             this.elementChildren.each(function() {
                 $(this).css({display: 'inline-block', padding: 0, margin: 0});
@@ -117,6 +116,7 @@
             partitions = getPartitions(weights, rows);
             resizeHorizontalElements(partitions);
         }
+        checkWidth(balancedGallery.options.orientation);
     }
 
     function createVerticalGallery() {
@@ -130,6 +130,8 @@
             orientElementsVertically(partitions);
             resizeVerticalElements(partitions);
         }
+        checkWidth(balancedGallery.options.orientation);
+		alignColumnHeights();
     }
 
     function getRows () {
@@ -339,8 +341,6 @@
                 $image.css({margin: 0, marginRight: padding+'px', marginBottom: padding+'px'});
             }
         }
-
-        checkWidth(balancedGallery.options.orientation);
     }
 
     function quickResizeHorizontal() {
@@ -364,8 +364,6 @@
             $image.width(imgWidth);
             $image.height(imgHeight);
         }
-
-        checkWidth(balancedGallery.options.orientation);
     }
 
     function resizeVerticalElements(partitions) {
@@ -405,9 +403,6 @@
             }
             balancedGallery.resizingValue[k] = {ratio: resizingFactor, length: partitions[k].length, columnHeight: columnHeight};
         }
-
-        checkWidth(balancedGallery.options.orientation);
-		alignColumnHeights();
     }
 
     function quickResizeVertical() {
@@ -432,9 +427,6 @@
             $image.width(imgWidth);
             $image.height(imgHeight);
         }
-
-        checkWidth(balancedGallery.options.orientation);
-		alignColumnHeights();
     }
 
     //ensures that the rows or all columns are as wide as the container width
@@ -452,6 +444,7 @@
     function alignColumnHeights() {
         var averageHeight = 0;
         var imagesPerCol = 0;
+		
         for(var i = 0; i < balancedGallery.resizingValue.length; i++) {
             averageHeight += balancedGallery.resizingValue[i].columnHeight;
         }
