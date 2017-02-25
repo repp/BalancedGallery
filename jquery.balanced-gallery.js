@@ -470,7 +470,7 @@
             var $col = $($container.find("div#"+colName));
             for(var j = 0; j < partitions[i].length; j++) {
                 var child = partitions[i][j].element;
-                $col.append(child).append('<br/>');
+                $col.append(child).append('<br style="display: block;"/>'); //Fix for Firefox; without 'style="display: block;"' Firefox assigns a width for an <br>-element. Strange!
             }
         }
 
