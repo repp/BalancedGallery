@@ -33,7 +33,7 @@
         this.element = element;
         $(this.element).wrapInner('<div class="balanced-gallery-container"></div>');
         this.container = $(this.element).children()[0];
-        this.elementChildren = $(this.container).children('*');
+        this.elementChildren = $(this.container).children('img');
         this.options = $.extend( {}, defaults, options); // merge arg options and defaults
         this.options.orientation = (this.options.orientation).toLowerCase();
 
