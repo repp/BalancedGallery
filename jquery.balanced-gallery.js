@@ -407,6 +407,7 @@
         }
 
         checkWidth(balancedGallery.options.orientation);
+		alignColumnHeights();
     }
 
     function quickResizeVertical() {
@@ -433,6 +434,7 @@
         }
 
         checkWidth(balancedGallery.options.orientation);
+		alignColumnHeights();
     }
 
     //ensures that the rows or all columns are as wide as the container width
@@ -446,6 +448,31 @@
         return parsedWidth;
     }
 
+    //stretch or shrink image by image, pixel by pixel to get exact same column heights
+    function alignColumnHeights() {
+        var averageHeight = 0;
+        var imagesPerCol = 0;
+        for(var i = 0; i < balancedGallery.resizingValue.length; i++) {
+            averageHeight += balancedGallery.resizingValue[i].columnHeight;
+        }
+        averageHeight = Math.round(averageHeight / balancedGallery.resizingValue.length);
+        for(var j = 0; j < balancedGallery.resizingValue.length; j++) {
+            imagesPerCol += balancedGallery.resizingValue[j].length;
+            var counter = Math.sign(averageHeight - balancedGallery.resizingValue[j].columnHeight);
+            //starting with last image in column, because it's more likely to be outside of the current viewport
+            var k = imagesPerCol-1;
+            while(averageHeight != balancedGallery.resizingValue[j].columnHeight) {
+                balancedGallery.elementChildren[k].height(balancedGallery.elementChildren[k].height() + counter);
+                balancedGallery.resizingValue[j].columnHeight += counter;
+                k--;
+				//if all images in a column got streched/shrinked, start iteration again with last image in column till averageHeight matches columnHeight
+                if(k < (imagesPerCol - balancedGallery.resizingValue[j].length)) { 
+                    k = imagesPerCol-1;
+                }
+            }
+        }
+    }
+	
     //if a scrollbar appears or disappears after resizing
     function checkWidth(orientation) {
         if((balancedGallery.options.viewportWidth + balancedGallery.options.padding) !== $(balancedGallery.element).width()) {
