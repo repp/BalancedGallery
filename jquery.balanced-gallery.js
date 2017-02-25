@@ -382,7 +382,7 @@
                 columnRatio[i] += partitions[i][j].weight;
             }
             // also add ratios from padding bars between each image in a column
-            columnRatio[i] += partitions[i].length * (padding / balancedGallery.options.idealWidth);
+            columnRatio[i] += partitions[i].length * (padding / (balancedGallery.options.idealWidth - padding));
             summedColRatios += columnRatio[i];
         }
         balancedGallery.summedColRatios = summedColRatios;
