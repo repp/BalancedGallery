@@ -34,7 +34,7 @@ var defaults = {
             idealHeight: null,                  // ideal row height, only used for horizontal galleries, defaults to 1/4 of the container width
             idealWidth: null,                   // ideal column width, only used for vertical galleries, defaults to 1/4 of the container width
             maintainOrder: true,                // keeps images in their original order, setting to 'false' can create a slightly better balance between rows
-            orientation: 'horizontal',          // 'horizontal' galleries are made of rows and scroll vertically; 'vertical' galleries are made of columns and also scroll vertically
+            orientation: 'horizontal',          // 'horizontal' galleries are made of rows; 'vertical' galleries are made of columns; 'grid' galleries combine both
             padding: 5,                         // pixels between images
             shuffleUnorderedPartitions: true,   // unordered galleries tend to clump larger images at the beginning, this solves that issue at a slight performance cost
             widthDivisor: 4						// used to define idealHeight/idealWidth (when they aren't set) by dividing the elements container width by the given value;

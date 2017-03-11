@@ -139,7 +139,7 @@
 	
 	function createGridGallery() {
 		var padding = balancedGallery.options.padding;
-		var quadratLength = parseInt(balancedGallery.options.idealWidth) - padding;
+		var quadratLength = parseInt(balancedGallery.options.idealWidth, RADIX) - padding;
 		var wrapper = '<div style="position: relative; display: inline-block; overflow: hidden; width: '+quadratLength+'px; height: '+quadratLength+'px; margin: 0 '+padding+'px '+padding+'px 0;"></div>';
 		var paddingGap = parseInt(((balancedGallery.options.viewportWidth % balancedGallery.options.widthDivisor) / 2), RADIX);
 		
@@ -545,10 +545,6 @@
         var clearingDiv = '<div class="balanced-gallery-clearing" style="clear: both;"></div>';
         $container.append(clearingDiv);
     }
-	
-	function wrapImages() {
-
-	}
 
     function aspectRatio($image) {
         return $image[0].naturalWidth / $image[0].naturalHeight;
