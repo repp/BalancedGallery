@@ -101,7 +101,10 @@
             createHorizontalGallery();
         } else if(orientation === 'vertical') {
             createVerticalGallery();
-        } else {
+        } else if(orientation === 'grid') {
+			createGridGallery();
+			checkWidth(orientation);
+		} else {
             throw("BalancedGallery: Invalid Orientation.");
         }
     };
@@ -133,6 +136,47 @@
         checkWidth(balancedGallery.options.orientation);
 		alignColumnHeights();
     }
+	
+	function createGridGallery() {
+		var padding = balancedGallery.options.padding;
+		var quadratLength = parseInt(balancedGallery.options.idealWidth) - padding;
+		var wrapper = '<div style="position: relative; display: inline-block; overflow: hidden; width: '+quadratLength+'px; height: '+quadratLength+'px; margin: 0 '+padding+'px '+padding+'px 0;"></div>';
+		var paddingGap = parseInt(((balancedGallery.options.viewportWidth % balancedGallery.options.widthDivisor) / 2), RADIX);
+		
+		//if necessary, increase the padding on the left side of the container so the grid is more centered
+		if(paddingGap > 0) {
+			var increasedPadding = paddingGap + padding;
+			var $container = $(balancedGallery.container);
+			$container.css({paddingLeft: increasedPadding+'px'});
+			$container.width(balancedGallery.options.viewportWidth - paddingGap);
+		}
+
+		balancedGallery.elementChildren.each(function(){
+			var $image = $(this);
+			var ratio = aspectRatio($image);
+			var offset = 0;
+		  
+			if(ratio >= 1) {
+				$image.height(quadratLength);
+				$image.width(quadratLength * ratio);
+				offset = (((quadratLength * ratio) - quadratLength) / 2) * -1;
+				$image.css({left: offset+'px', position: 'absolute'});
+			} else if(ratio < 1) {
+				$image.width(quadratLength);
+				$image.height(quadratLength * (1/ratio));
+				offset = (((quadratLength * (1/ratio)) - quadratLength) / 2) * -1;
+				$image.css({top: offset+'px', position: 'absolute'});
+			}
+			
+			if(balancedGallery.quickResize) {
+				var $div = $image.parent();
+				$div.width(quadratLength);
+				$div.height(quadratLength);
+			} else {
+				$image.wrap(wrapper);
+			}
+		});
+	}
 
     function getRows () {
         var rows = Math.round(collectiveIdealWidth() / balancedGallery.options.viewportWidth);
@@ -475,7 +519,10 @@
                 quickResizeHorizontal();
             } else if(orientation == 'vertical') {
                 quickResizeVertical();
-            }
+            } else if(orientation == 'grid') {
+				balancedGallery.options.idealWidth = balancedGallery.options.viewportWidth / balancedGallery.options.widthDivisor;
+				createGridGallery();
+			}
         }
     }
 
@@ -498,6 +545,10 @@
         var clearingDiv = '<div class="balanced-gallery-clearing" style="clear: both;"></div>';
         $container.append(clearingDiv);
     }
+	
+	function wrapImages() {
+
+	}
 
     function aspectRatio($image) {
         return $image[0].naturalWidth / $image[0].naturalHeight;
