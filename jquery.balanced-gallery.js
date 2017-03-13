@@ -1,8 +1,9 @@
-;(function ( $, window, document, undefined ) {
+(function ($, window, undefined) {
     "use strict";
 
     var pluginName = 'BalancedGallery',
-        balancedGallery,
+        galleries = [],
+		balancedGallery,
         defaults = {
             autoResize: true,
             background: null,
@@ -20,21 +21,22 @@
         overflow = 0;
 
     //this wrapper prevents multiple instantiations of the plugin:
-    $.fn[pluginName] = function ( options ) {
+    $.fn[pluginName] = function (options) {
         return this.each(function () {
             if (!$.data(this, 'plugin_' + pluginName)) {
-                $.data(this, 'plugin_' + pluginName, new BalancedGallery( this, options ));
+                $.data(this, 'plugin_' + pluginName, new BalancedGallery(this, options));
             }
         });
     };
 
-    function BalancedGallery( element, options ) {
-        balancedGallery = this; // for contexts when 'this' doesn't refer to the BalancedGallery class.
+    function BalancedGallery(element, options) {
+        balancedGallery = this // for contexts when 'this' doesn't refer to the BalancedGallery class.
+		galleries.push(this);
         this.element = element;
         $(this.element).wrapInner('<div class="balanced-gallery-container"></div>');
         this.container = $(this.element).children()[0];
         this.elementChildren = $(this.container).children('img');
-        this.options = $.extend( {}, defaults, options); // merge arg options and defaults
+        this.options = $.extend({}, defaults, options); // merge arg options and defaults
         this.options.orientation = (this.options.orientation).toLowerCase();
 
         if(this.options.autoResize) {
@@ -53,7 +55,12 @@
             clearTimeout(resizeTimeout);
 
             resizeTimeout = setTimeout(function() {
-                balancedGallery.recreate();
+                for(var index = 0; index < galleries.length; index++) {
+					if(galleries[index].options.autoResize) {
+						balancedGallery = galleries[index];
+						galleries[index].recreate();
+					}
+				}
             }, 500);
         });
     }
@@ -62,13 +69,13 @@
         this.options = $.extend({}, this.unadulteratedOptions);
         $(this.element).css(this.unadulteratedCSS); //used to reset width so it's calculated from browser
 
-        balancedGallery.quickResize = true;
-        balancedGallery.init();
-        balancedGallery.createGallery();
+        this.quickResize = true;
+        this.init();
+        this.createGallery();
     };
 
     BalancedGallery.prototype.init = function () {
-        if(balancedGallery.quickResize === false) {
+        if(this.quickResize === false) {
             this.elementChildren.each(function() {
                 $(this).css({display: 'inline-block', padding: 0, margin: 0});
             });
@@ -300,7 +307,7 @@
             for(var q = 1; q < sections; q++) {
                 var results = [];
                 for (var r = 0; r < p; r++) {
-                    results.push([ Math.max( table[r][q - 1], table[p][0]-table[r][0] ), r ]);
+                    results.push([Math.max(table[r][q - 1], table[p][0]-table[r][0]), r]);
                 }
                 var arr = results.sort(subArraySort)[0];
                 table[p][q] = arr[0];
@@ -561,4 +568,4 @@
         return array;
     }
 
-})( jQuery, window, document );
+}(jQuery, window));
