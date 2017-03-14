@@ -13,6 +13,7 @@
             orientation: 'horizontal',
             padding: 5,
             shuffleUnorderedPartitions: true,
+			gridAspectRatio: 1,
             widthDivisor: 4
         },
         resizeTimeout = null,
@@ -146,8 +147,10 @@
 	
 	function createGridGallery() {
 		var padding = balancedGallery.options.padding;
-		var quadratLength = parseInt(balancedGallery.options.idealWidth, RADIX) - padding;
-		var wrapper = '<div style="position: relative; display: inline-block; overflow: hidden; width: '+quadratLength+'px; height: '+quadratLength+'px; margin: 0 '+padding+'px '+padding+'px 0;"></div>';
+		var cellRatio = balancedGallery.options.gridAspectRatio;
+		var cellWidth = parseInt(balancedGallery.options.idealWidth - padding, RADIX);
+		var cellHeight = cellWidth * (1 / cellRatio);
+		var wrapper = '<div style="position: relative; display: inline-block; overflow: hidden; width: '+cellWidth+'px; height: '+cellHeight+'px; margin: 0 '+padding+'px '+padding+'px 0;"></div>';
 		var paddingGap = parseInt(((balancedGallery.options.viewportWidth % balancedGallery.options.widthDivisor) / 2), RADIX);
 		
 		//if necessary, increase the padding on the left side of the container so the grid is more centered
@@ -160,25 +163,25 @@
 
 		balancedGallery.elementChildren.each(function(){
 			var $image = $(this);
-			var ratio = aspectRatio($image);
+			var imgRatio = aspectRatio($image);
 			var offset = 0;
 		  
-			if(ratio >= 1) {
-				$image.height(quadratLength);
-				$image.width(quadratLength * ratio);
-				offset = (((quadratLength * ratio) - quadratLength) / 2) * -1;
+			if(imgRatio >= cellRatio) {
+				$image.height(cellHeight);
+				$image.width(cellHeight * imgRatio);
+				offset = (cellWidth - (cellHeight * imgRatio)) / 2;
 				$image.css({left: offset+'px', position: 'absolute'});
-			} else if(ratio < 1) {
-				$image.width(quadratLength);
-				$image.height(quadratLength * (1/ratio));
-				offset = (((quadratLength * (1/ratio)) - quadratLength) / 2) * -1;
+			} else if(imgRatio < cellRatio) {
+				$image.width(cellWidth);
+				$image.height(cellWidth * (1/imgRatio));
+				offset = (cellHeight - (cellWidth * (1/imgRatio))) / 2;
 				$image.css({top: offset+'px', position: 'absolute'});
 			}
 			
 			if(balancedGallery.quickResize) {
 				var $div = $image.parent();
-				$div.width(quadratLength);
-				$div.height(quadratLength);
+				$div.width(cellWidth);
+				$div.height(cellHeight);
 			} else {
 				$image.wrap(wrapper);
 			}
@@ -324,7 +327,6 @@
         var partitions = new Array(sections);
         for (var i=0; i < sections; i++) { partitions[i] = []; }
 
-
         for(var j = 0; j < sortedWeights.length; j++) {
             var shortestPartition = partitions[0];
             var shortestPartitionWeight = getPartitionWeight(shortestPartition);
@@ -338,7 +340,7 @@
             }
             shortestPartition.push(sortedWeights[j]);
         }
-
+		
         return partitions;
     }
 
