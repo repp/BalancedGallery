@@ -89,6 +89,7 @@
             }
             this.elements.each(function() {
                 $(this.element).css({display: displayMode, padding: 0, margin: 0});
+                this.image.css({display: displayMode, padding: 0, margin: 0});
             });
 
             var padding = this.options.padding + 'px';
@@ -160,7 +161,7 @@
         var cellRatio = balancedGallery.options.gridAspectRatio;
         var cellWidth = parseInt(balancedGallery.options.idealWidth - padding, RADIX);
         var cellHeight = cellWidth * (1 / cellRatio);
-        var wrapper = '<div style="position: relative; display: inline-block; overflow: hidden; width: '+cellWidth+'px; height: '+cellHeight+'px; margin: 0 '+padding+'px '+padding+'px 0;"></div>';
+        var wrapper = '<div></div>';
         var paddingGap = parseInt(((balancedGallery.options.viewportWidth % balancedGallery.options.widthDivisor) / 2), RADIX);
         
         //if necessary, increase the padding on the left side of the wrapper so the grid is more centered
@@ -194,6 +195,7 @@
                 $div.height(cellHeight);
             } else {
                 $image.wrap(wrapper);
+                $($image[0].parentNode).css({position: 'relative', display: 'inline-block', overflow: 'hidden', width: cellWidth+'px', height: cellHeight+'px', margin: 0, marginRight: padding+'px', marginBottom: padding+'px'});
             }
         });
     }
