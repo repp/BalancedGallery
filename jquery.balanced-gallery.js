@@ -30,18 +30,18 @@
         });
     };
 
-    function BalancedGallery(element, options) {
+    function BalancedGallery(container, options) {
         balancedGallery = this // for contexts when 'this' doesn't refer to the BalancedGallery class.
 		galleries.push(this);
-        this.element = element;
-        $(this.element).wrapInner('<div class="balanced-gallery-container"></div>');
-        this.container = $(this.element).children()[0];
-        this.elementChildren = $(this.container).children('img');
+        this.container = container;
+        $(this.container).wrapInner('<div class="balanced-gallery-wrapper"></div>');
+        this.wrapper = $(this.container).children()[0];
+        this.elements = $(this.wrapper).children('img');
         this.options = $.extend({}, defaults, options); // merge arg options and defaults
         this.options.orientation = (this.options.orientation).toLowerCase();
 
         if(this.options.autoResize) {
-            this.unadulteratedCSS = {width: $(this.element)[0].style.width};
+            this.unadulteratedCSS = {width: $(this.container)[0].style.width};
             this.unadulteratedOptions = $.extend({}, this.options);
             setupAutoResize();
         }
@@ -68,7 +68,7 @@
 
     BalancedGallery.prototype.recreate = function () {
         this.options = $.extend({}, this.unadulteratedOptions);
-        $(this.element).css(this.unadulteratedCSS); //used to reset width so it's calculated from browser
+        $(this.container).css(this.unadulteratedCSS); //used to reset width so it's calculated from browser
 
         this.quickResize = true;
         this.init();
@@ -77,19 +77,19 @@
 
     BalancedGallery.prototype.init = function () {
         if(this.quickResize === false) {
-            this.elementChildren.each(function() {
+            this.elements.each(function() {
                 $(this).css({display: 'inline-block', padding: 0, margin: 0});
             });
 
             var padding = this.options.padding + 'px';
-            $(this.container).css({fontSize: 0, paddingTop: padding, paddingLeft: padding});
+            $(this.wrapper).css({fontSize: 0, paddingTop: padding, paddingLeft: padding});
 
             if(this.options.background !== null) {
-                $(this.container).css({background: this.options.background});
+                $(this.wrapper).css({background: this.options.background});
             }
         }
 
-        this.options.viewportWidth = $(this.element).width() - this.options.padding;
+        this.options.viewportWidth = $(this.container).width() - this.options.padding;
 
         if(this.options.idealWidth === null) {
             this.options.idealWidth = this.options.viewportWidth / this.options.widthDivisor;
@@ -100,7 +100,7 @@
         }
 
         //setting explicit width prevents image wrapping on resizing
-        $(this.container).width(this.options.viewportWidth);
+        $(this.wrapper).width(this.options.viewportWidth);
     };
 
     BalancedGallery.prototype.createGallery = function() {
@@ -153,15 +153,15 @@
 		var wrapper = '<div style="position: relative; display: inline-block; overflow: hidden; width: '+cellWidth+'px; height: '+cellHeight+'px; margin: 0 '+padding+'px '+padding+'px 0;"></div>';
 		var paddingGap = parseInt(((balancedGallery.options.viewportWidth % balancedGallery.options.widthDivisor) / 2), RADIX);
 		
-		//if necessary, increase the padding on the left side of the container so the grid is more centered
+		//if necessary, increase the padding on the left side of the wrapper so the grid is more centered
 		if(paddingGap > 0) {
 			var increasedPadding = paddingGap + padding;
-			var $container = $(balancedGallery.container);
-			$container.css({paddingLeft: increasedPadding+'px'});
-			$container.width(balancedGallery.options.viewportWidth - paddingGap);
+			var $wrapper = $(balancedGallery.wrapper);
+			$wrapper.css({paddingLeft: increasedPadding+'px'});
+			$wrapper.width(balancedGallery.options.viewportWidth - paddingGap);
 		}
 
-		balancedGallery.elementChildren.each(function(){
+		balancedGallery.elements.each(function(){
 			var $image = $(this);
 			var imgRatio = aspectRatio($image);
 			var offset = 0;
@@ -198,7 +198,7 @@
 
     function getColumns() {
         var cols = Math.round(balancedGallery.options.viewportWidth / balancedGallery.options.idealWidth);
-        var elements = balancedGallery.elementChildren.length;
+        var elements = balancedGallery.elements.length;
         if(cols <= elements) {
             return cols;
         } else {
@@ -208,7 +208,7 @@
 
     function collectiveIdealWidth() {
         var sum = 0;
-        balancedGallery.elementChildren.each(function () {
+        balancedGallery.elements.each(function () {
             sum += idealWidth($(this));
         });
         return sum;
@@ -219,14 +219,14 @@
     }
 
     function getWidthWeights() {
-        return balancedGallery.elementChildren.map(function () {
+        return balancedGallery.elements.map(function () {
             var weight = aspectRatio($(this));
             return {element: this, weight: weight };
         });
     }
 
     function getHeightWeights() {
-        return balancedGallery.elementChildren.map(function () {
+        return balancedGallery.elements.map(function () {
             var weight = 1/aspectRatio($(this));
             return {element: this, weight: weight };
         });
@@ -360,11 +360,11 @@
     }
 
     function reorderElements(partitions) {
-        $(balancedGallery.container).html(''); //remove all elements
+        $(balancedGallery.wrapper).html(''); //remove all elements
         for(var i = 0; i < partitions.length; i++) {
             var subPartition = partitions[i];
             for(var j = 0; j < subPartition.length; j++) {
-                $(balancedGallery.container).append(subPartition[j].element);
+                $(balancedGallery.wrapper).append(subPartition[j].element);
             }
         }
     }
@@ -385,7 +385,7 @@
             var rawImgHeight = (balancedGallery.options.viewportWidth - rowPadding) / rowRatio;
             for(var k = 0; k < partitions[i].length; k++) {
                 var $image = $(partitions[i][k].element);
-                balancedGallery.elementChildren[index++] = $image;
+                balancedGallery.elements[index++] = $image;
                 var imgHeight = parseInt(rawImgHeight, RADIX);
                 var imgWidth = rawImgHeight * aspectRatio($image);
                 imgWidth = checkWidthOverflow(imgWidth);
@@ -402,7 +402,7 @@
         var imagesPerRow = 0;
         var rawImgHeight, rowPadding;
 
-        for(var i = 0; i < balancedGallery.elementChildren.length; i++) {
+        for(var i = 0; i < balancedGallery.elements.length; i++) {
             if(i == imagesPerRow) {
                 rowPadding = padding * balancedGallery.resizingValue[index].length;
                 rawImgHeight = (balancedGallery.options.viewportWidth - rowPadding) / balancedGallery.resizingValue[index].ratio;
@@ -410,7 +410,7 @@
                 index++;
                 overflow = 0;
             }
-            var $image = balancedGallery.elementChildren[i];
+            var $image = balancedGallery.elements[i];
             var imgHeight = parseInt(rawImgHeight, RADIX);
             var imgWidth = rawImgHeight * aspectRatio($image);
             imgWidth = checkWidthOverflow(imgWidth);
@@ -447,7 +447,7 @@
             var columnHeight = 0;
             for(var l = 0; l < partitions[k].length; l++) {
                 var $image = $(partitions[k][l].element);
-                balancedGallery.elementChildren[index++] = $image;
+                balancedGallery.elements[index++] = $image;
                 var imgHeight = Math.round(rawImgWidth * (1/aspectRatio($image)));
                 columnHeight += imgHeight + padding;
                 $image.width(imgWidth);
@@ -465,7 +465,7 @@
         overflow = 0;
         var columnWidth, rawImgWidth, imgWidth;
 
-        for(var i = 0; i < balancedGallery.elementChildren.length; i++) {
+        for(var i = 0; i < balancedGallery.elements.length; i++) {
             if(i == imagesPerCol) {
                 index++;
                 balancedGallery.resizingValue[index].columnHeight = 0;
@@ -474,7 +474,7 @@
                 imgWidth = checkWidthOverflow(rawImgWidth);
                 imagesPerCol += balancedGallery.resizingValue[index].length;
             }
-            var $image = balancedGallery.elementChildren[i];
+            var $image = balancedGallery.elements[i];
             var imgHeight = parseInt(rawImgWidth * (1/aspectRatio($image)), RADIX);
             balancedGallery.resizingValue[index].columnHeight += imgHeight + padding;
             $image.width(imgWidth);
@@ -482,7 +482,7 @@
         }
     }
 
-    //ensures that the rows or all columns are as wide as the container width
+    //ensures that the rows or all columns are as wide as the wrapper width
     function checkWidthOverflow(width) {
         var parsedWidth = parseInt(width, RADIX);
         overflow += width - parsedWidth;
@@ -508,7 +508,7 @@
             //starting with last image in column, because it's more likely to be outside of the current viewport
             var k = imagesPerCol-1;
             while(averageHeight != balancedGallery.resizingValue[j].columnHeight) {
-                balancedGallery.elementChildren[k].height(balancedGallery.elementChildren[k].height() + counter);
+                balancedGallery.elements[k].height(balancedGallery.elements[k].height() + counter);
                 balancedGallery.resizingValue[j].columnHeight += counter;
                 k--;
 				//if all images in a column got streched/shrinked, start iteration again with last image in column till averageHeight matches columnHeight
@@ -521,9 +521,9 @@
 	
     //if a scrollbar appears or disappears after resizing
     function checkWidth(orientation) {
-        if((balancedGallery.options.viewportWidth + balancedGallery.options.padding) !== $(balancedGallery.element).width()) {
-            balancedGallery.options.viewportWidth = $(balancedGallery.element).width() - balancedGallery.options.padding;
-            $(balancedGallery.container).width(balancedGallery.options.viewportWidth);
+        if((balancedGallery.options.viewportWidth + balancedGallery.options.padding) !== $(balancedGallery.container).width()) {
+            balancedGallery.options.viewportWidth = $(balancedGallery.container).width() - balancedGallery.options.padding;
+            $(balancedGallery.wrapper).width(balancedGallery.options.viewportWidth);
             if(orientation == 'horizontal') {
                 quickResizeHorizontal();
             } else if(orientation == 'vertical') {
@@ -536,14 +536,14 @@
     }
 
     function orientElementsVertically(partitions) {
-        var $container = $(balancedGallery.container);
-        $container.html(''); //clear the images
+        var $wrapper = $(balancedGallery.wrapper);
+        $wrapper.html(''); //clear the images
 
         for(var i = 0; i < partitions.length; i++) {
             var colName = 'balanced-gallery-col'+i;
             var column = '<div class="balanced-gallery-column" id="'+colName+'" style="float: left; padding: 0; margin: 0;"></div>';
-            $container.append(column);
-            var $col = $($container.find("div#"+colName));
+            $wrapper.append(column);
+            var $col = $($wrapper.find("div#"+colName));
             for(var j = 0; j < partitions[i].length; j++) {
                 var child = partitions[i][j].element;
                 $col.append(child).append('<br style="display: block;"/>'); //Fix for Firefox; without 'style="display: block;"' Firefox assigns a width for an <br>-element. Strange!
@@ -552,7 +552,7 @@
 
         //add clearing div
         var clearingDiv = '<div class="balanced-gallery-clearing" style="clear: both;"></div>';
-        $container.append(clearingDiv);
+        $wrapper.append(clearingDiv);
     }
 
     function aspectRatio($image) {
