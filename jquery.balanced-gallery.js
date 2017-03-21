@@ -3,7 +3,7 @@
 
     var pluginName = 'BalancedGallery',
         galleries = [],
-		balancedGallery,
+        balancedGallery,
         defaults = {
             autoResize: true,
             background: null,
@@ -13,7 +13,7 @@
             orientation: 'horizontal',
             padding: 5,
             shuffleUnorderedPartitions: true,
-			gridAspectRatio: 1,
+            gridAspectRatio: 1,
             widthDivisor: 4
         },
         resizeTimeout = null,
@@ -32,7 +32,7 @@
 
     function BalancedGallery(container, options) {
         balancedGallery = this // for contexts when 'this' doesn't refer to the BalancedGallery class.
-		galleries.push(this);
+        galleries.push(this);
         this.container = container;
         $(this.container).wrapInner('<div class="balanced-gallery-wrapper"></div>');
         this.wrapper = $(this.container).children()[0];
@@ -63,11 +63,11 @@
 
             resizeTimeout = setTimeout(function() {
                 for(var index = 0; index < galleries.length; index++) {
-					if(galleries[index].options.autoResize) {
-						balancedGallery = galleries[index];
-						galleries[index].recreate();
-					}
-				}
+                    if(galleries[index].options.autoResize) {
+                        balancedGallery = galleries[index];
+                        galleries[index].recreate();
+                    }
+                }
             }, 500);
         });
     }
@@ -83,8 +83,12 @@
 
     BalancedGallery.prototype.init = function () {
         if(this.quickResize === false) {
+            var displayMode = 'inline-block';
+            if(this.options.orientation == 'vertical') {
+                displayMode = 'block';
+            }
             this.elements.each(function() {
-                $(this.element).css({display: 'inline-block', padding: 0, margin: 0});
+                $(this.element).css({display: displayMode, padding: 0, margin: 0});
             });
 
             var padding = this.options.padding + 'px';
@@ -116,9 +120,9 @@
         } else if(orientation === 'vertical') {
             createVerticalGallery();
         } else if(orientation === 'grid') {
-			createGridGallery();
-			checkWidth(orientation);
-		} else {
+            createGridGallery();
+            checkWidth(orientation);
+        } else {
             throw("BalancedGallery: Invalid Orientation.");
         }
     };
@@ -148,51 +152,51 @@
             resizeVerticalElements(partitions);
         }
         checkWidth(balancedGallery.options.orientation);
-		alignColumnHeights();
+        alignColumnHeights();
     }
-	
-	function createGridGallery() {
-		var padding = balancedGallery.options.padding;
-		var cellRatio = balancedGallery.options.gridAspectRatio;
-		var cellWidth = parseInt(balancedGallery.options.idealWidth - padding, RADIX);
-		var cellHeight = cellWidth * (1 / cellRatio);
-		var wrapper = '<div style="position: relative; display: inline-block; overflow: hidden; width: '+cellWidth+'px; height: '+cellHeight+'px; margin: 0 '+padding+'px '+padding+'px 0;"></div>';
-		var paddingGap = parseInt(((balancedGallery.options.viewportWidth % balancedGallery.options.widthDivisor) / 2), RADIX);
-		
-		//if necessary, increase the padding on the left side of the wrapper so the grid is more centered
-		if(paddingGap > 0) {
-			var increasedPadding = paddingGap + padding;
-			var $wrapper = $(balancedGallery.wrapper);
-			$wrapper.css({paddingLeft: increasedPadding+'px'});
-			$wrapper.width(balancedGallery.options.viewportWidth - paddingGap);
-		}
+    
+    function createGridGallery() {
+        var padding = balancedGallery.options.padding;
+        var cellRatio = balancedGallery.options.gridAspectRatio;
+        var cellWidth = parseInt(balancedGallery.options.idealWidth - padding, RADIX);
+        var cellHeight = cellWidth * (1 / cellRatio);
+        var wrapper = '<div style="position: relative; display: inline-block; overflow: hidden; width: '+cellWidth+'px; height: '+cellHeight+'px; margin: 0 '+padding+'px '+padding+'px 0;"></div>';
+        var paddingGap = parseInt(((balancedGallery.options.viewportWidth % balancedGallery.options.widthDivisor) / 2), RADIX);
+        
+        //if necessary, increase the padding on the left side of the wrapper so the grid is more centered
+        if(paddingGap > 0) {
+            var increasedPadding = paddingGap + padding;
+            var $wrapper = $(balancedGallery.wrapper);
+            $wrapper.css({paddingLeft: increasedPadding+'px'});
+            $wrapper.width(balancedGallery.options.viewportWidth - paddingGap);
+        }
 
-		balancedGallery.elements.each(function(){
-			var $image = this.image;
-			var imgRatio = aspectRatio($image);
-			var offset = 0;
-		  
-			if(imgRatio >= cellRatio) {
-				$image.height(cellHeight);
-				$image.width(cellHeight * imgRatio);
-				offset = (cellWidth - (cellHeight * imgRatio)) / 2;
-				$image.css({left: offset+'px', position: 'absolute'});
-			} else if(imgRatio < cellRatio) {
-				$image.width(cellWidth);
-				$image.height(cellWidth * (1/imgRatio));
-				offset = (cellHeight - (cellWidth * (1/imgRatio))) / 2;
-				$image.css({top: offset+'px', position: 'absolute'});
-			}
-			
-			if(balancedGallery.quickResize) {
-				var $div = $image.parent();
-				$div.width(cellWidth);
-				$div.height(cellHeight);
-			} else {
-				$image.wrap(wrapper);
-			}
-		});
-	}
+        balancedGallery.elements.each(function(){
+            var $image = this.image;
+            var imgRatio = aspectRatio($image);
+            var offset = 0;
+          
+            if(imgRatio >= cellRatio) {
+                $image.height(cellHeight);
+                $image.width(cellHeight * imgRatio);
+                offset = (cellWidth - (cellHeight * imgRatio)) / 2;
+                $image.css({left: offset+'px', position: 'absolute'});
+            } else if(imgRatio < cellRatio) {
+                $image.width(cellWidth);
+                $image.height(cellWidth * (1/imgRatio));
+                offset = (cellHeight - (cellWidth * (1/imgRatio))) / 2;
+                $image.css({top: offset+'px', position: 'absolute'});
+            }
+            
+            if(balancedGallery.quickResize) {
+                var $div = $image.parent();
+                $div.width(cellWidth);
+                $div.height(cellHeight);
+            } else {
+                $image.wrap(wrapper);
+            }
+        });
+    }
 
     function getRows () {
         var rows = Math.round(collectiveIdealWidth() / balancedGallery.options.viewportWidth);
@@ -346,7 +350,7 @@
             }
             shortestPartition.push(sortedWeights[j]);
         }
-		
+        
         return partitions;
     }
 
@@ -502,7 +506,7 @@
     function alignColumnHeights() {
         var averageHeight = 0;
         var imagesPerCol = 0;
-		
+        
         for(var i = 0; i < balancedGallery.resizingValue.length; i++) {
             averageHeight += balancedGallery.resizingValue[i].columnHeight;
         }
@@ -516,14 +520,14 @@
                 balancedGallery.elements[k].image.height(balancedGallery.elements[k].image.height() + counter);
                 balancedGallery.resizingValue[j].columnHeight += counter;
                 k--;
-				//if all images in a column got streched/shrinked, start iteration again with last image in column till averageHeight matches columnHeight
+                //if all images in a column got streched/shrinked, start iteration again with last image in column till averageHeight matches columnHeight
                 if(k < (imagesPerCol - balancedGallery.resizingValue[j].length)) { 
                     k = imagesPerCol-1;
                 }
             }
         }
     }
-	
+    
     //if a scrollbar appears or disappears after resizing
     function checkWidth(orientation) {
         if((balancedGallery.options.viewportWidth + balancedGallery.options.padding) !== $(balancedGallery.container).width()) {
@@ -534,9 +538,9 @@
             } else if(orientation == 'vertical') {
                 quickResizeVertical();
             } else if(orientation == 'grid') {
-				balancedGallery.options.idealWidth = balancedGallery.options.viewportWidth / balancedGallery.options.widthDivisor;
-				createGridGallery();
-			}
+                balancedGallery.options.idealWidth = balancedGallery.options.viewportWidth / balancedGallery.options.widthDivisor;
+                createGridGallery();
+            }
         }
     }
 
@@ -544,18 +548,13 @@
         var $wrapper = $(balancedGallery.wrapper);
         for(var i = 0; i < partitions.length; i++) {
             var colName = 'balanced-gallery-col'+i;
-            var column = '<div class="balanced-gallery-column" id="'+colName+'" style="float: left; padding: 0; margin: 0;"></div>';
+            var column = '<div class="balanced-gallery-column" id="'+colName+'" style="display: inline-block; padding: 0; margin: 0;"></div>';
             $wrapper.append(column);
             var $col = $($wrapper.find("div#"+colName));
             for(var j = 0; j < partitions[i].length; j++) {
-                var child = partitions[i][j].element;
-                $col.append(child).append('<br style="display: block;"/>'); //Fix for Firefox; without 'style="display: block;"' Firefox assigns a width for an <br>-element. Strange!
+                $col.append(partitions[i][j].element);
             }
         }
-
-        //add clearing div
-        var clearingDiv = '<div class="balanced-gallery-clearing" style="clear: both;"></div>';
-        $wrapper.append(clearingDiv);
     }
 
     function aspectRatio($image) {
