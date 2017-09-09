@@ -161,7 +161,6 @@
         var cellRatio = balancedGallery.options.gridAspectRatio;
         var cellWidth = parseInt(balancedGallery.options.idealWidth - padding, RADIX);
         var cellHeight = cellWidth * (1 / cellRatio);
-        var wrapper = '<div></div>';
         var paddingGap = parseInt(((balancedGallery.options.viewportWidth % balancedGallery.options.widthDivisor) / 2), RADIX);
         
         //if necessary, increase the padding on the left side of the wrapper so the grid is more centered
@@ -181,12 +180,12 @@
                 $image.height(cellHeight);
                 $image.width(cellHeight * imgRatio);
                 offset = (cellWidth - (cellHeight * imgRatio)) / 2;
-                $image.css({left: offset+'px', position: 'absolute'});
+                $image.css({left: offset+'px', position: 'absolute', maxWidth: 'none'});
             } else if(imgRatio < cellRatio) {
                 $image.width(cellWidth);
                 $image.height(cellWidth * (1/imgRatio));
                 offset = (cellHeight - (cellWidth * (1/imgRatio))) / 2;
-                $image.css({top: offset+'px', position: 'absolute'});
+                $image.css({top: offset+'px', position: 'absolute', maxWidth: 'none'});
             }
             
             if(balancedGallery.quickResize) {
@@ -194,10 +193,11 @@
                 $div.width(cellWidth);
                 $div.height(cellHeight);
             } else {
-                $image.wrap(wrapper);
-                $($image[0].parentNode).css({position: 'relative', display: 'inline-block', overflow: 'hidden', width: cellWidth+'px', height: cellHeight+'px', margin: 0, marginRight: padding+'px', marginBottom: padding+'px'});
+                $image.wrap('<div></div>');
+                $($image[0].parentNode).css({position: 'relative', 'float': 'left', 'overflow': 'hidden', width: cellWidth+'px', height: cellHeight+'px', margin: 0, marginRight: padding+'px', marginBottom: padding+'px'});
             }
         });
+        $(balancedGallery.wrapper).append('<div style="clear: both;"></div>');
     }
 
     function getRows () {
