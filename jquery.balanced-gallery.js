@@ -33,10 +33,10 @@
     function BalancedGallery(container, options) {
         balancedGallery = this // for contexts when 'this' doesn't refer to the BalancedGallery class.
         galleries.push(this);
-        this.container = container;
-        $(this.container).wrapInner('<div class="balanced-gallery-wrapper"></div>');
-        this.wrapper = $(this.container).children()[0];
-        this.elements = $(this.wrapper).children().map(function(){
+        this.container = $(container);
+        this.container.wrapInner('<div class="balanced-gallery-wrapper"></div>');
+        this.wrapper = $(this.container.children()[0]);
+        this.elements = this.wrapper.children().map(function(){
             var img = $(this).find('img')[0];
             if(img === undefined) {
                 img = this;
@@ -47,7 +47,7 @@
         this.options.orientation = (this.options.orientation).toLowerCase();
 
         if(this.options.autoResize) {
-            this.unadulteratedCSS = {width: $(this.container)[0].style.width};
+            this.unadulteratedCSS = {width: this.container[0].style.width};
             this.unadulteratedOptions = $.extend({}, this.options);
             setupAutoResize();
         }
@@ -74,7 +74,7 @@
 
     BalancedGallery.prototype.recreate = function () {
         this.options = $.extend({}, this.unadulteratedOptions);
-        $(this.container).css(this.unadulteratedCSS); //used to reset width so it's calculated from browser
+        this.container.css(this.unadulteratedCSS); //used to reset width so it's calculated from browser
 
         this.quickResize = true;
         this.init();
@@ -93,14 +93,14 @@
             });
 
             var padding = this.options.padding + 'px';
-            $(this.wrapper).css({fontSize: 0, paddingTop: padding, paddingLeft: padding});
+            this.wrapper.css({fontSize: 0, paddingTop: padding, paddingLeft: padding});
 
             if(this.options.background !== null) {
-                $(this.wrapper).css({background: this.options.background});
+                this.wrapper.css({background: this.options.background});
             }
         }
 
-        this.options.viewportWidth = $(this.container).width() - this.options.padding;
+        this.options.viewportWidth = this.container.width() - this.options.padding;
 
         if(this.options.idealWidth === null) {
             this.options.idealWidth = this.options.viewportWidth / this.options.widthDivisor;
@@ -111,7 +111,7 @@
         }
 
         //setting explicit width prevents image wrapping on resizing
-        $(this.wrapper).width(this.options.viewportWidth);
+        this.wrapper.width(this.options.viewportWidth);
     };
 
     BalancedGallery.prototype.createGallery = function() {
@@ -166,9 +166,8 @@
         //if necessary, increase the padding on the left side of the wrapper so the grid is more centered
         if(paddingGap > 0) {
             var increasedPadding = paddingGap + padding;
-            var $wrapper = $(balancedGallery.wrapper);
-            $wrapper.css({paddingLeft: increasedPadding+'px'});
-            $wrapper.width(balancedGallery.options.viewportWidth - paddingGap);
+            balancedGallery.wrapper.css({paddingLeft: increasedPadding+'px'});
+            balancedGallery.wrapper.width(balancedGallery.options.viewportWidth - paddingGap);
         }
 
         balancedGallery.elements.each(function(){
@@ -197,7 +196,7 @@
                 $($image[0].parentNode).css({position: 'relative', 'float': 'left', 'overflow': 'hidden', width: cellWidth+'px', height: cellHeight+'px', margin: 0, marginRight: padding+'px', marginBottom: padding+'px'});
             }
         });
-        $(balancedGallery.wrapper).append('<div style="clear: both;"></div>');
+        balancedGallery.wrapper.append('<div style="clear: both;"></div>');
     }
 
     function getRows () {
@@ -375,7 +374,7 @@
         for(var i = 0; i < partitions.length; i++) {
             var subPartition = partitions[i];
             for(var j = 0; j < subPartition.length; j++) {
-                $(balancedGallery.wrapper).append(subPartition[j].element);
+                balancedGallery.wrapper.append(subPartition[j].element);
             }
         }
     }
@@ -532,9 +531,9 @@
     
     //if a scrollbar appears or disappears after resizing
     function checkWidth(orientation) {
-        if((balancedGallery.options.viewportWidth + balancedGallery.options.padding) !== $(balancedGallery.container).width()) {
-            balancedGallery.options.viewportWidth = $(balancedGallery.container).width() - balancedGallery.options.padding;
-            $(balancedGallery.wrapper).width(balancedGallery.options.viewportWidth);
+        if((balancedGallery.options.viewportWidth + balancedGallery.options.padding) !== balancedGallery.container.width()) {
+            balancedGallery.options.viewportWidth = balancedGallery.container.width() - balancedGallery.options.padding;
+            balancedGallery.wrapper.width(balancedGallery.options.viewportWidth);
             if(orientation == 'horizontal') {
                 quickResizeHorizontal();
             } else if(orientation == 'vertical') {
@@ -547,12 +546,11 @@
     }
 
     function orientElementsVertically(partitions) {
-        var $wrapper = $(balancedGallery.wrapper);
         for(var i = 0; i < partitions.length; i++) {
             var colName = 'balanced-gallery-col'+i;
             var column = '<div class="balanced-gallery-column" id="'+colName+'" style="display: inline-block; padding: 0; margin: 0;"></div>';
-            $wrapper.append(column);
-            var $col = $($wrapper.find("div#"+colName));
+            balancedGallery.wrapper.append(column);
+            var $col = $(balancedGallery.wrapper.find("div#"+colName));
             for(var j = 0; j < partitions[i].length; j++) {
                 $col.append(partitions[i][j].element);
             }
