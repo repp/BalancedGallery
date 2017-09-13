@@ -200,11 +200,11 @@
     }
 
     function getRows () {
-        var rows = Math.round(collectiveIdealWidth() / balancedGallery.options.viewportWidth);
+        var rows = collectiveIdealWidth() / balancedGallery.options.viewportWidth;
         if(rows > 0 && rows < 1) { // if it's BETWEEN 0 and 1 means there is at least one image
             rows = 1;
         }
-        return rows;
+        return Math.round(rows);
     }
 
     function getColumns() {
