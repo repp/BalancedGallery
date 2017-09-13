@@ -60,7 +60,6 @@
     function setupAutoResize() {
         $(window).resize(function() {
             clearTimeout(resizeTimeout);
-
             resizeTimeout = setTimeout(function() {
                 for(var index = 0; index < galleries.length; index++) {
                     if(galleries[index].options.autoResize) {
@@ -122,7 +121,6 @@
             createVerticalGallery();
         } else if(orientation === 'grid') {
             createGridGallery();
-            checkWidth(orientation);
         } else {
             throw("BalancedGallery: Invalid Orientation.");
         }
@@ -157,6 +155,17 @@
     }
     
     function createGridGallery() {
+        if(!balancedGallery.quickResize && !balancedGallery.options.maintainOrder && balancedGallery.options.shuffleUnorderedPartitions) {
+            shuffleArray(balancedGallery.elements);
+            for(var i = 0; i < balancedGallery.elements.length; i++) {
+                balancedGallery.wrapper.append(balancedGallery.elements[i].element);
+            }
+        }
+        resizeGridElements();
+        checkWidth(balancedGallery.options.orientation);
+    }
+    
+    function resizeGridElements() {
         var padding = balancedGallery.options.padding;
         var cellRatio = balancedGallery.options.gridAspectRatio;
         var cellWidth = parseInt(balancedGallery.options.idealWidth - padding, RADIX);
@@ -540,7 +549,7 @@
                 quickResizeVertical();
             } else if(orientation == 'grid') {
                 balancedGallery.options.idealWidth = balancedGallery.options.viewportWidth / balancedGallery.options.widthDivisor;
-                createGridGallery();
+                resizeGridElements();
             }
         }
     }
