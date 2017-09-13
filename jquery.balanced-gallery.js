@@ -155,11 +155,14 @@
     }
     
     function createGridGallery() {
-        if(!balancedGallery.quickResize && !balancedGallery.options.maintainOrder && balancedGallery.options.shuffleUnorderedPartitions) {
-            shuffleArray(balancedGallery.elements);
-            for(var i = 0; i < balancedGallery.elements.length; i++) {
-                balancedGallery.wrapper.append(balancedGallery.elements[i].element);
+        if(!balancedGallery.quickResize) {
+            if(!balancedGallery.options.maintainOrder && balancedGallery.options.shuffleUnorderedPartitions) {
+                shuffleArray(balancedGallery.elements);
+                for(var i = 0; i < balancedGallery.elements.length; i++) {
+                    balancedGallery.wrapper.append(balancedGallery.elements[i].element);
+                }
             }
+            balancedGallery.wrapper.append('<div style="clear: both;"></div>');
         }
         resizeGridElements();
         checkWidth(balancedGallery.options.orientation);
@@ -205,7 +208,6 @@
                 $($image[0].parentNode).css({position: 'relative', 'float': 'left', 'overflow': 'hidden', width: cellWidth+'px', height: cellHeight+'px', margin: 0, marginRight: padding+'px', marginBottom: padding+'px'});
             }
         });
-        balancedGallery.wrapper.append('<div style="clear: both;"></div>');
     }
 
     function getRows () {
