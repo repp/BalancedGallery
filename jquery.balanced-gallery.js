@@ -254,6 +254,10 @@
         });
     }
 
+    function aspectRatio($image) {
+        return $image[0].naturalWidth / $image[0].naturalHeight;
+    }
+
     function getPartitions(weights, sections) {
         if(balancedGallery.options.maintainOrder) {
             return getOrderedPartition(weights, sections);
@@ -390,6 +394,29 @@
         }
     }
 
+    function shuffleArray(array) {
+        var counter = array.length, temp, index;
+        while (counter--) {
+            index = (Math.random() * counter) | 0; //not a typo
+            temp = array[counter];
+            array[counter] = array[index];
+            array[index] = temp;
+        }
+        return array;
+    }
+
+    function orientElementsVertically(partitions) {
+        for(var i = 0; i < partitions.length; i++) {
+            var colName = 'balanced-gallery-col'+i;
+            var column = '<div class="balanced-gallery-column" id="'+colName+'" style="display: inline-block; padding: 0; margin: 0;"></div>';
+            balancedGallery.wrapper.append(column);
+            var $col = $(balancedGallery.wrapper.find("div#"+colName));
+            for(var j = 0; j < partitions[i].length; j++) {
+                $col.append(partitions[i][j].element);
+            }
+        }
+    }
+
     function resizeHorizontalElements(partitions) {
         var padding = balancedGallery.options.padding;
         var index = 0;
@@ -513,6 +540,22 @@
         }
         return parsedWidth;
     }
+    
+    //if a scrollbar appears or disappears after resizing
+    function checkWidth(orientation) {
+        if((balancedGallery.options.viewportWidth + balancedGallery.options.padding) !== balancedGallery.container.width()) {
+            balancedGallery.options.viewportWidth = balancedGallery.container.width() - balancedGallery.options.padding;
+            balancedGallery.wrapper.width(balancedGallery.options.viewportWidth);
+            if(orientation == 'horizontal') {
+                quickResizeHorizontal();
+            } else if(orientation == 'vertical') {
+                quickResizeVertical();
+            } else if(orientation == 'grid') {
+                balancedGallery.options.idealWidth = balancedGallery.options.viewportWidth / balancedGallery.options.widthDivisor;
+                resizeGridElements();
+            }
+        }
+    }
 
     //stretch or shrink image by image, pixel by pixel to get exact same column heights
     function alignColumnHeights() {
@@ -538,49 +581,6 @@
                 }
             }
         }
-    }
-    
-    //if a scrollbar appears or disappears after resizing
-    function checkWidth(orientation) {
-        if((balancedGallery.options.viewportWidth + balancedGallery.options.padding) !== balancedGallery.container.width()) {
-            balancedGallery.options.viewportWidth = balancedGallery.container.width() - balancedGallery.options.padding;
-            balancedGallery.wrapper.width(balancedGallery.options.viewportWidth);
-            if(orientation == 'horizontal') {
-                quickResizeHorizontal();
-            } else if(orientation == 'vertical') {
-                quickResizeVertical();
-            } else if(orientation == 'grid') {
-                balancedGallery.options.idealWidth = balancedGallery.options.viewportWidth / balancedGallery.options.widthDivisor;
-                resizeGridElements();
-            }
-        }
-    }
-
-    function orientElementsVertically(partitions) {
-        for(var i = 0; i < partitions.length; i++) {
-            var colName = 'balanced-gallery-col'+i;
-            var column = '<div class="balanced-gallery-column" id="'+colName+'" style="display: inline-block; padding: 0; margin: 0;"></div>';
-            balancedGallery.wrapper.append(column);
-            var $col = $(balancedGallery.wrapper.find("div#"+colName));
-            for(var j = 0; j < partitions[i].length; j++) {
-                $col.append(partitions[i][j].element);
-            }
-        }
-    }
-
-    function aspectRatio($image) {
-        return $image[0].naturalWidth / $image[0].naturalHeight;
-    }
-
-    function shuffleArray(array) {
-        var counter = array.length, temp, index;
-        while (counter--) {
-            index = (Math.random() * counter) | 0; //not a typo
-            temp = array[counter];
-            array[counter] = array[index];
-            array[index] = temp;
-        }
-        return array;
     }
 
 }(jQuery, window));
