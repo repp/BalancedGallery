@@ -29,16 +29,17 @@ Options
 -------
 ``` javascript
 var defaults = {
-            autoResize: true,                   // re-partition and resize the images when the window size changes
+            autoResize: true,                   // resize the images when the window size changes
             background: null,                   // the css properties of the gallery's containing element
-            idealHeight: null,                  // ideal row height, only used for horizontal galleries, defaults to half the containing element's height
-            idealWidth: null,                   // ideal column width, only used for vertical galleries, defaults to 1/4 of the containing element's width
+            idealHeight: null,                  // ideal row height, only used for horizontal galleries, defaults to 1/4 of the container width
+            idealWidth: null,                   // ideal column width, only used for vertical galleries, defaults to 1/4 of the container width
             maintainOrder: true,                // keeps images in their original order, setting to 'false' can create a slightly better balance between rows
-            orientation: 'horizontal',          // 'horizontal' galleries are made of rows and scroll vertically; 'vertical' galleries are made of columns and scroll horizontally
+            orientation: 'horizontal',          // 'horizontal' galleries are made of rows; 'vertical' galleries are made of columns; 'grid' galleries combine both
             padding: 5,                         // pixels between images
-            shuffleUnorderedPartitions: true,   // unordered galleries tend to clump larger images at the begining, this solves that issue at a slight performance cost
-            viewportHeight: null,               // the assumed height of the gallery, defaults to the containing element's height
-            viewportWidth: null                 // the assumed width of the gallery, defaults to the containing element's width
+            shuffleUnorderedPartitions: true,   // unordered galleries tend to clump larger images at the beginning, this solves that issue at a slight performance cost
+			gridAspectRatio: 1,					// the aspect ratio with which the images are going to be displayed; only used for grid galleries
+            widthDivisor: 4						// used to define idealHeight/idealWidth (when they aren't set) by dividing the elements container width by the given value;
+												// the bigger the widthDivisor value, the smaller the images get; on vertical galleries the value simply defines the number of columns
         };
 ```
 
