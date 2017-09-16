@@ -420,9 +420,9 @@
     function orientElementsVertically(partitions) {
         for(var i = 0; i < partitions.length; i++) {
             var colName = 'balanced-gallery-col'+i;
-            var column = '<div class="balanced-gallery-column" id="'+colName+'" style="display: inline-block; padding: 0; margin: 0;"></div>';
+            var column = '<div class="balanced-gallery-column '+colName+'" style="display: inline-block; padding: 0; margin: 0;"></div>';
             balancedGallery.wrapper.append(column);
-            var $col = $(balancedGallery.wrapper[0].querySelector("div#"+colName));
+            var $col = $(balancedGallery.wrapper[0].querySelector("div."+colName));
             for(var j = 0; j < partitions[i].length; j++) {
                 $col.append(partitions[i][j].element);
             }
